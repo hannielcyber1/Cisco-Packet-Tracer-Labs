@@ -37,7 +37,7 @@ Recreate the network diagram shown in the Day 1 video (timestamp: **16:40**).
 
 ---
 
-#### 🔌 Connections
+### 🔌 Connections
 
 All devices should be connected using:
 
@@ -50,7 +50,7 @@ This ensures:
 
 ---
 
-## 🧪 Lab Tasks
+### 🧪 Lab Tasks
 
 * [ ] Place all required devices in the workspace
 * [ ] Connect all devices correctly
@@ -59,21 +59,16 @@ This ensures:
 
 ---
 
-## 📸 Screenshot
+### 📸 Screenshot
 
-*Add a screenshot of your completed topology here*
 
-```id="6v1qk3"
-![Day 1 Topology](../images/day1_topology.png)
-```
 
----
+![Day 1 Topology](images/day-1.png)
 
-## 🧠 What I Learned
 
-* How to **select appropriate Cisco devices**
-* How to **build a network topology from a reference**
-* Basics of **network segmentation (routers, switches, firewalls)**
-* Importance of **network design before configuration**
+
+
 
 ---
+
+

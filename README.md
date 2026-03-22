@@ -70,5 +70,85 @@ This ensures:
 
 
 ---
+# 📅 Day 2 — Network Cabling & Device Connections
+
+### 🎯 Lab Objective
+
+Connect all devices in the topology using the **correct cable types** while assuming **Auto MDI-X is disabled**.
+
+This lab focuses on:
+
+* Proper **cable selection**
+* Understanding **device-to-device connections**
+* Building a correct **Layer 1 (Physical Layer)** network
+
+---
+
+### 🧰 Devices Used
+
+* 🛣️ Routers (R1, R2, R3, R4)
+* 🔀 Switches (SW1 – SW8)
+* 💻 PCs (PC1, PC2, PC3)
+* 🖥️ Server (SRV1)
+
+---
+
+### 🗺️ Topology Overview
+
+* R1 connects to R2 and R3
+* R3 connects to R4
+* Each router connects to switches
+* Switches connect to PCs and servers
+
+Distances (important for media choice):
+
+* R1 ↔ R2 → **50 meters**
+* R3 ↔ R4 → **250 meters**
+* R1 ↔ R3 → **3 kilometers**
+
+---
+
+### 🔌 Cable Selection Rules (Auto MDI-X Disabled)
+
+| Connection         | Cable Type        |
+| ------------------ | ----------------- |
+| Router ↔ Router    | Crossover / Fiber |
+| Router ↔ Switch    | Straight-through  |
+| Switch ↔ Switch    | Crossover         |
+| Switch ↔ PC/Server | Straight-through  |
+
+---
+
+### 🧠 Fiber Decision (Based on Distance)
+
+| Link    | Distance | Recommended Cable   |
+| ------- | -------- | ------------------- |
+| R1 ↔ R2 | 50m      | Copper (Crossover)  |
+| R3 ↔ R4 | 250m     | Fiber (Multimode)   |
+| R1 ↔ R3 | 3km      | Fiber (Single-mode) |
+
+> ⚠️ Packet Tracer does not differentiate between fiber types, but in real networks:
+
+* **Multimode fiber** → short distance (LAN)
+* **Single-mode fiber** → long distance (WAN)
+
+---
+
+### 🧪 Lab Tasks
+
+* [ ] Connect all routers correctly
+* [ ] Connect switches to routers
+* [ ] Connect end devices (PCs, Server)
+* [ ] Use correct cable types (no auto mode)
+* [ ] Ensure all links are **green (active)**
+
+---
+
+### 📸 Topology Screenshot
+
+![Day 2 Topology](images/day-2.png)
+
+
+---
 
 

@@ -264,7 +264,7 @@ Configure basic security settings on Cisco devices using the CLI, including:
 * Hostnames
 * Enable passwords
 * Password encryption
-* Secure access configuration
+* Secure access configurations
 
 ---
 

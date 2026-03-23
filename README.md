@@ -247,7 +247,7 @@ When renewing IP, the following happens:
 
 ---
 
-### 📸 Screenshot
+### 📸 Network Topology Screenshot
 
 
 ![Day 3 Topology](images/day-3.png)

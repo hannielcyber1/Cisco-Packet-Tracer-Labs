@@ -123,8 +123,8 @@ Distances (important for media choice):
 | Link    | Distance | Recommended Cable   |
 | ------- | -------- | ------------------- |
 | R1 ↔ R2 | 50m      | Copper (Crossover)  |
-| R3 ↔ R4 | 250m     | Fiber (Multimode)   |
-| R1 ↔ R3 | 3km      | Fiber (Single-mode) |
+| R3 ↔ R4 | 250m     | Fiber (Multimode fiber)   |
+| R1 ↔ R3 | 3km      | Fiber (Single-mode fiber) |
 
 > ⚠️ Packet Tracer does not differentiate between fiber types, but in real networks:
 

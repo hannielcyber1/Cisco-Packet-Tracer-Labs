@@ -4,7 +4,7 @@ A collection of my Cisco Packet Tracer lab exercises which i made to practice an
 
 ## 📅 Day 1 — Network Topology Setup (Packet Tracer Introduction)
 
-### 🎯 Lab Objective
+### 🎯 Lab Objectives
 
 I created and connected a basic enterprise-style network topology using Cisco devices in **Cisco Packet Tracer**.
 

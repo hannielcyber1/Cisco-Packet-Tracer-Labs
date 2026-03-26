@@ -616,7 +616,7 @@ show mac address-table
 
 ![Mac Address Table ](images/day-6.1.png)
 
-### Expected:
+#### Expected:
 
 * SW1 → PC1, PC2 + link to SW2
 * SW2 → PC3, PC4 + link to SW1
@@ -648,7 +648,196 @@ show mac address-table
 ![Day 4 Topology](images/day-6.png)
 
 
+
+
+
+
+## 📅 Day 7 — Basic Router Configuration & Connectivity
+
+### 🎯 Lab Objective
+
+Learn how to:
+
+* Configure a router’s hostname
+* Assign IP addresses to router interfaces
+* Enable interfaces
+* Configure PCs with IP addresses
+* Test connectivity using ping
+
 ---
+
+### 🧰 Devices Used
+
+* 🛣️ Router:
+
+  * R1 (2911)
+* 🔀 Switches:
+
+  * SW1, SW2, SW3 (2960-24TT)
+* 💻 PCs:
+
+  * PC1 → 15.0.0.1
+  * PC2 → 182.98.0.1
+  * PC3 → 201.191.20.1
+
+---
+
+### 🌐 Network Overview
+
+| Network         | Interface | IP Address     |
+| --------------- | --------- | -------------- |
+| 15.0.0.0/8      | G0/0      | 15.255.255.254 |
+| 182.98.0.0      | G0/1      | 182.98.255.254 |
+| 201.191.20.0/24 | G0/2      | 201.191.20.254 |
+
+---
+
+### 🔧 Task 1 — Configure Hostname
+
+```
+enable
+configure terminal
+hostname R1
+```
+
+---
+
+### 🔍 Task 2 — View Interfaces
+
+```
+show ip interface brief
+```
+
+This displays:
+
+* Interface names
+* IP addresses
+* Status (up/down)
+
+---
+
+## ⚙️ Task 3 — Configure Interfaces
+
+#### G0/0 (Network 15.0.0.0/8)
+
+```
+interface g0/0
+ip address 15.255.255.254 255.0.0.0
+description Connection to SW1 (PC1 Network)
+no shutdown
+exit
+```
+
+---
+
+#### G0/1 (Network 182.98.0.0)
+
+```
+interface g0/1
+ip address 182.98.255.254 255.255.0.0
+description Connection to SW2 (PC2 Network)
+no shutdown
+exit
+```
+
+---
+
+#### G0/2 (Network 201.191.20.0/24)
+
+```
+interface g0/2
+ip address 201.191.20.254 255.255.255.0
+description Connection to SW3 (PC3 Network)
+no shutdown
+exit
+```
+
+---
+
+### 🔍 Task 4 — Verify Interfaces
+
+```
+show ip interface brief
+```
+
+✅ All interfaces should show:
+
+* Status: **up**
+* Protocol: **up**
+
+---
+
+### 📄 Task 5 — View & Save Configuration
+
+#### View running config:
+
+```
+show running-config
+```
+
+### Save configuration:
+
+```
+copy running-config startup-config
+```
+
+---
+
+#### 💻 Task 6 — Configure PC IP Addresses
+
+#### PC1:
+
+* IP: 15.0.0.1
+* Subnet Mask: 255.0.0.0
+* Default Gateway: 15.255.255.254
+
+---
+
+#### PC2:
+
+* IP: 182.98.0.1
+* Subnet Mask: 255.255.0.0
+* Default Gateway: 182.98.255.254
+
+---
+
+#### PC3:
+
+* IP: 201.191.20.1
+* Subnet Mask: 255.255.255.0
+* Default Gateway: 201.191.20.254
+
+---
+
+## 🧪 Task 7 — Test Connectivity
+
+### From PC1:
+
+```
+ping 182.98.0.1
+ping 201.191.20.1
+```
+
+---
+
+## 📊 Expected Results
+
+* PC1 → PC2 ✅ Success
+* PC1 → PC3 ✅ Success
+
+
+
+---
+
+## 📸 Topology Screenshot
+
+```
+![Day 5 Topology](../images/day5_topology.png)
+```
+
+
+---
+
 
 
 

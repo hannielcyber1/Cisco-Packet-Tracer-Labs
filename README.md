@@ -832,7 +832,7 @@ ping 201.191.20.1
 ## 📸 Topology Screenshot
 
 ```
-![Day 5 Topology](../images/day5_topology.png)
+![Day 7 Topology](../images/day-7.png)
 ```
 
 

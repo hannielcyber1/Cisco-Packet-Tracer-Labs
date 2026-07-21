@@ -999,7 +999,7 @@ show interfaces status
 ```
 
 ---
-###Router Configuration 
+### Router Configuration 
 
 ![Day 8 Topology](images/day-8.png) 
 

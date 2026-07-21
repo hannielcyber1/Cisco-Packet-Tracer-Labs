@@ -650,7 +650,7 @@ show mac address-table
 
 
 
-
+---
 
 ## 📅 Day 7 — Basic Router Configuration & Connectivity
 

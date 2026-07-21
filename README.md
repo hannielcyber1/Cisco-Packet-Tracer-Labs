@@ -835,6 +835,286 @@ ping 201.191.20.1
 
 ---
 
+## 📅 Day 8 — Interface Configuration & Switch Hardening
 
+### 🎯 Lab Objectives
+
+In this lab you will:
+
+- Configure the hostname of **R1**, **SW1**, and **SW2**
+- Configure the appropriate IP addresses on **R1**, **PC1**, **PC2**, **PC3**, and **PC4**
+- Manually configure **speed** and **duplex** on interfaces connected to other networking devices
+- Configure clear **descriptions** on each interface
+- Disable switch interfaces that are not connected to other devices
+
+---
+
+### 🧰 Devices Used
+
+- 🛣️ Router:
+  - **R1** (2911)
+- 🔀 Switches:
+  - **SW1**, **SW2** (2960-24TT)
+- 💻 PCs:
+  - **PC1**
+  - **PC2**
+  - **PC3**
+  - **PC4**
+
+---
+
+### 🌐 Network Overview
+
+| Device | Interface | IP Address | Subnet Mask | Notes |
+| ------- | --------- | ---------- | ----------- | ----- |
+| R1 | G0/0 | 172.16.255.254 | 255.255.0.0 | Gateway for PCs |
+| PC1 | F0/1 → SW1 | 172.16.0.1 | 255.255.0.0 | |
+| PC2 | F0/2 → SW1 | 172.16.0.2 | 255.255.0.0 | |
+| PC3 | F0/1 → SW2 | 172.16.0.3 | 255.255.0.0 | |
+| PC4 | F0/2 → SW2 | 172.16.0.4 | 255.255.0.0 | |
+
+**Default Gateway:** `172.16.255.254`
+
+---
+
+### 🔧 Task 1 — Configure Hostnames
+
+#### R1
+
+```plaintext
+enable
+configure terminal
+hostname R1
+```
+
+#### SW1
+
+```plaintext
+enable
+configure terminal
+hostname SW1
+```
+
+#### SW2
+
+```plaintext
+enable
+configure terminal
+hostname SW2
+```
+
+---
+
+### ⚙️ Task 2 — Configure Router Interface
+
+#### G0/0 (Connected to SW1)
+
+```plaintext
+interface g0/0
+ip address 172.16.255.254 255.255.0.0
+no shutdown
+duplex full
+speed 100
+description ## TO SW1 ##
+```
+
+---
+
+### ⚙️ Task 3 — Configure Switch Uplinks (Speed/Duplex/Descriptions)
+
+#### SW1
+
+**Configure uplink to R1**
+
+```plaintext
+interface g0/1
+duplex full
+speed 100
+description ## TO R1 ##
+```
+
+**Configure uplink to SW2**
+
+```plaintext
+interface g0/2
+duplex full
+speed 100
+description ## TO SW2 ##
+```
+
+**Mark access ports to PCs**
+
+```plaintext
+interface range f0/1-2
+description ## TO ENDHOSTS ##
+```
+
+**Shutdown unused ports**
+
+```plaintext
+interface range f0/3-24
+description ## DO NOT TOUCH ##
+shutdown
+```
+
+**Verify**
+
+```plaintext
+show interfaces status
+```
+
+---
+
+#### SW2
+
+**Configure uplink to SW1**
+
+```plaintext
+interface g0/1
+duplex full
+speed 100
+description ## TO SW1 ##
+```
+
+**Configure access ports**
+
+```plaintext
+interface range f0/1-2
+description ## TO ENDHOSTS ##
+no shutdown
+```
+
+**Shutdown unused ports**
+
+```plaintext
+interface range f0/3-24
+description ## DO NOT TOUCH ##
+shutdown
+```
+
+**Verify**
+
+```plaintext
+show interfaces status
+```
+
+---
+###Router Configuration 
+
+![Day 8 Topology](images/day-8.png) 
+
+
+---
+### Switch Configuration 
+![Day 8 Topology](images/day-8.1.png) 
+
+
+---
+
+
+
+### 💻 Task 4 — Configure PC IP Settings
+
+All PCs use:
+
+- **Subnet Mask:** `255.255.0.0`
+- **Default Gateway:** `172.16.255.254`
+
+#### PC1
+
+- IP Address: **172.16.0.1**
+- Subnet Mask: **255.255.0.0**
+- Default Gateway: **172.16.255.254**
+
+---
+
+#### PC2
+
+- IP Address: **172.16.0.2**
+- Subnet Mask: **255.255.0.0**
+- Default Gateway: **172.16.255.254**
+
+---
+
+#### PC3
+
+- IP Address: **172.16.0.3**
+- Subnet Mask: **255.255.0.0**
+- Default Gateway: **172.16.255.254**
+
+---
+
+#### PC4
+
+- IP Address: **172.16.0.4**
+- Subnet Mask: **255.255.0.0**
+- Default Gateway: **172.16.255.254**
+
+---
+
+### 🔍 Task 5 — Verify & Save Configuration
+
+#### On R1
+
+```plaintext
+show ip interface brief
+show running-config
+copy running-config startup-config
+```
+
+#### On SW1
+
+```plaintext
+show interfaces status
+show running-config
+copy running-config startup-config
+```
+
+#### On SW2
+
+```plaintext
+show interfaces status
+show running-config
+copy running-config startup-config
+```
+
+All active interfaces connecting devices should show:
+
+- Status: **up**
+- Protocol: **up**
+
+Unused ports should be **administratively down**.
+
+---
+
+## 🧪 Task 6 — Test Connectivity
+
+### From PC1
+
+```plaintext
+ping 172.16.255.254
+ping 172.16.0.2
+ping 172.16.0.3
+ping 172.16.0.4
+```
+
+---
+
+## 📊 Expected Results
+
+- PC1 → Default Gateway ✅ Success
+- PC1 → PC2 ✅ Success
+- PC1 → PC3 ✅ Success
+- PC1 → PC4 ✅ Success
+- All uplink links remain **up/up**
+- All unused switch ports are **administratively down**
+
+---
+
+## 📸 Topology Screenshot
+
+![Day 8 Topology](images/day-8.2.png)
+
+---
 
 

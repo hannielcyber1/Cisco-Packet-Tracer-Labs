@@ -1117,4 +1117,249 @@ ping 172.16.0.4
 
 ---
 
+## 📅 Day 9 — Configuring Static Routes
 
+### 🎯 Lab Objective
+
+Learn how to:
+
+- Configure hostnames on multiple routers
+- Assign IP addresses to router interfaces
+- Configure PC IP addresses and default gateways
+- Configure static routes between routers
+- Verify routing tables
+- Test end-to-end connectivity using ping
+
+---
+
+### 🧰 Devices Used
+
+- 🛣️ Routers:
+  - R1 (2911)
+  - R2 (2911)
+  - R3 (2911)
+
+- 🔀 Switches:
+  - SW1 (2960-24TT)
+  - SW2 (2960-24TT)
+
+- 💻 PCs:
+  - PC1 → 192.168.1.1
+  - PC2 → 192.168.3.1
+
+---
+
+### 🌐 Network Overview
+
+| Network | Router Interface | IP Address |
+| -------- | ---------------- | ---------- |
+| 192.168.1.0/24 | R1 G0/1 | 192.168.1.254 |
+| 192.168.12.0/24 | R1 G0/0 | 192.168.12.1 |
+| 192.168.12.0/24 | R2 G0/0 | 192.168.12.2 |
+| 192.168.13.0/24 | R2 G0/1 | 192.168.13.2 |
+| 192.168.13.0/24 | R3 G0/0 | 192.168.13.3 |
+| 192.168.3.0/24 | R3 G0/1 | 192.168.3.254 |
+
+---
+
+### 🔧 Task 1 — Configure R1
+
+#### Configure Hostname
+
+```plaintext
+enable
+configure terminal
+hostname R1
+```
+
+#### Configure G0/1 (LAN)
+
+```plaintext
+interface g0/1
+ip address 192.168.1.254 255.255.255.0
+no shutdown
+exit
+```
+
+#### Configure G0/0 (Link to R2)
+
+```plaintext
+interface g0/0
+ip address 192.168.12.1 255.255.255.0
+no shutdown
+exit
+```
+
+#### Configure Static Route
+
+```plaintext
+ip route 192.168.3.0 255.255.255.0 192.168.12.2
+```
+
+#### Verify
+
+```plaintext
+show ip interface brief
+show ip route
+write
+```
+
+![Day 9 Topology](images/day-9.png)
+
+---
+
+### 🔧 Task 2 — Configure R2
+
+#### Configure Hostname
+
+```plaintext
+enable
+configure terminal
+hostname R2
+```
+
+#### Configure G0/0 (Link to R1)
+
+```plaintext
+interface g0/0
+ip address 192.168.12.2 255.255.255.0
+no shutdown
+exit
+```
+
+#### Configure G0/1 (Link to R3)
+
+```plaintext
+interface g0/1
+ip address 192.168.13.2 255.255.255.0
+no shutdown
+exit
+```
+
+#### Configure Static Routes
+
+```plaintext
+ip route 192.168.1.0 255.255.255.0 192.168.12.1
+ip route 192.168.3.0 255.255.255.0 192.168.13.3
+```
+
+#### Verify
+
+```plaintext
+show ip interface brief
+show ip route
+write
+```
+
+![Day 9 Topology](images/day-9.1.png)
+
+---
+
+### 🔧 Task 3 — Configure R3
+
+#### Configure Hostname
+
+```plaintext
+enable
+configure terminal
+hostname R3
+```
+
+#### Configure G0/0 (Link to R2)
+
+```plaintext
+interface g0/0
+ip address 192.168.13.3 255.255.255.0
+no shutdown
+exit
+```
+
+#### Configure G0/1 (LAN)
+
+```plaintext
+interface g0/1
+ip address 192.168.3.254 255.255.255.0
+no shutdown
+exit
+```
+
+#### Configure Static Route
+
+```plaintext
+ip route 192.168.1.0 255.255.255.0 192.168.13.2
+```
+
+#### Verify
+
+```plaintext
+show ip interface brief
+show ip route
+write
+```
+
+![Day 9 Topology](images/day-9.2.png)
+
+---
+
+### 💻 Task 4 — Configure PC IP Addresses
+
+#### PC1
+
+- IP Address: **192.168.1.1**
+- Subnet Mask: **255.255.255.0**
+- Default Gateway: **192.168.1.254**
+
+---
+
+#### PC2
+
+- IP Address: **192.168.3.1**
+- Subnet Mask: **255.255.255.0**
+- Default Gateway: **192.168.3.254**
+
+---
+
+## 🧪 Task 5 — Test Connectivity
+
+### From PC1
+
+```plaintext
+ping 192.168.1.254
+ping 192.168.12.2
+ping 192.168.13.3
+ping 192.168.3.254
+ping 192.168.3.1
+```
+
+---
+
+### From PC2
+
+```plaintext
+ping 192.168.3.254
+ping 192.168.13.2
+ping 192.168.12.1
+ping 192.168.1.254
+ping 192.168.1.1
+```
+
+---
+
+## 📊 Expected Results
+
+- R1 successfully reaches R2 and R3 using static routes ✅
+- PC1 successfully pings PC2 ✅
+- PC2 successfully pings PC1 ✅
+- All router interfaces show **up/up** ✅
+- Static routes appear in the routing table marked with **S** ✅
+
+
+![Day 9 Topology](images/day-9.3.png)
+
+---
+
+## 📸 Topology Screenshot
+
+![Day 9 Topology](images/day-9.4.png)
+
+---

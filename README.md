@@ -2,7 +2,7 @@
 A collection of my Cisco Packet Tracer lab exercises which i made to practice and demonstrate networking concepts including routing, switching, VLAN configuration, subnetting, and network troubleshooting.
 
 
-## 📅 Day 1 — Network Topology Setup (Packet Tracer Introduction)
+## 📅 Day 1 — Network Topology Setup (Introducton)
 
 ### 🎯 Lab Objectives
 

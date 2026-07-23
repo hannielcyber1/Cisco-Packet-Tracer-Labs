@@ -1363,3 +1363,222 @@ ping 192.168.1.1
 ![Day 9 Topology](images/day-9.4.png)
 
 ---
+## 📅 Day 10 — Troubleshooting Static Routes
+
+### 🎯 Lab Objective
+
+Learn how to:
+
+- Troubleshoot static routing issues
+- Identify incorrect next-hop addresses
+- Correct invalid static routes
+- Fix incorrect interface IP addresses
+- Verify routing tables
+- Restore end-to-end connectivity between PCs
+
+---
+
+### 🧰 Devices Used
+
+- 🛣️ Routers:
+
+  - R1 (2911)
+  - R2 (2911)
+  - R3 (2911)
+
+- 🔀 Switches:
+
+  - SW1 (2960-24TT)
+  - SW2 (2960-24TT)
+
+- 💻 PCs:
+
+  - PC1 → 192.168.1.1
+  - PC2 → 192.168.3.1
+
+---
+
+### 🌐 Network Overview
+
+| Network         | Router Interface | IP Address    |
+| --------------- | ---------------- | ------------- |
+| 192.168.1.0/24  | R1 G0/1          | 192.168.1.254 |
+| 192.168.12.0/24 | R1 G0/0          | 192.168.12.1  |
+| 192.168.12.0/24 | R2 G0/0          | 192.168.12.2  |
+| 192.168.13.0/24 | R2 G0/1          | 192.168.13.2  |
+| 192.168.13.0/24 | R3 G0/0          | 192.168.13.3  |
+| 192.168.3.0/24  | R3 G0/1          | 192.168.3.254 |
+
+---
+
+### ⚠️ Initial Problem
+
+At the beginning of the lab:
+
+- ❌ PC1 cannot ping PC2.
+- ❌ PC2 cannot ping PC1.
+- ❌ Each router contains one incorrect configuration.
+
+---
+
+### 🔧 Task 1 — Troubleshoot R1
+
+#### Verify Interfaces and Routing Table
+
+```plaintext
+enable
+configure terminal
+do show ip interface brief
+do show ip route
+```
+
+#### ❌ Incorrect Static Route
+
+```plaintext
+S 192.168.3.0/24 via 192.168.12.3
+```
+
+#### Remove Incorrect Static Route
+
+```plaintext
+no ip route 192.168.3.0 255.255.255.0 192.168.12.3
+```
+
+#### ✅ Configure Correct Static Route
+
+```plaintext
+ip route 192.168.3.0 255.255.255.0 192.168.12.2
+```
+
+#### Verify
+
+```plaintext
+show ip route
+write
+```
+![Day 10 Topology](images/day-10.png)
+
+---
+
+### 🔧 Task 2 — Troubleshoot R2
+
+#### Verify Interfaces and Routing Table
+
+```plaintext
+enable
+configure terminal
+do show ip interface brief
+do show ip route
+```
+
+#### ❌ Incorrect Static Route
+
+```plaintext
+S 192.168.3.0/24 is directly connected, GigabitEthernet0/0
+```
+
+#### Remove Incorrect Static Route
+
+```plaintext
+no ip route 192.168.3.0 255.255.255.0 g0/0
+```
+
+#### ✅ Configure Correct Static Route
+
+```plaintext
+ip route 192.168.3.0 255.255.255.0 192.168.13.3
+```
+
+#### Verify
+
+```plaintext
+show ip route
+write
+```
+![Day 10 Topology](images/day-10.1.png)
+
+---
+
+### 🔧 Task 3 — Troubleshoot R3
+
+#### Verify Interface Configuration
+
+```plaintext
+enable
+configure terminal
+do show ip interface brief
+```
+
+#### ❌ Incorrect Interface IP
+
+```plaintext
+GigabitEthernet0/0
+192.168.23.3
+```
+
+#### Enter the Interface
+
+```plaintext
+interface g0/0
+```
+
+#### Remove Incorrect IP Address
+
+```plaintext
+no ip address 192.168.23.3 255.255.255.0
+```
+
+#### ✅ Configure Correct IP Address
+
+```plaintext
+ip address 192.168.13.3 255.255.255.0
+no shutdown
+exit
+```
+
+#### Verify
+
+```plaintext
+show ip interface brief
+write
+```
+![Day 10 Topology](images/day-10.2.png)
+
+---
+
+## 🧪 Task 4 — Test Connectivity
+
+### From PC1
+
+```plaintext
+ping 192.168.3.1
+```
+
+---
+
+### From PC2
+
+```plaintext
+ping 192.168.1.1
+```
+![Day 10 Topology](images/day-10.3.png)
+
+---
+
+## 📊 Expected Results
+
+- R1 contains the correct next-hop static route ✅
+- R2 contains the correct static route to R3 ✅
+- R3 has the correct interface IP address ✅
+- PC1 successfully pings PC2 ✅
+- PC2 successfully pings PC1 ✅
+- Static routes appear in the routing table marked with **S** ✅
+- All router interfaces show **up/up** ✅
+
+---
+
+## 📸 Topology Screenshot
+
+![Day 10 Topology](images/day-10.4.png)
+
+---

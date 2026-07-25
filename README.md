@@ -1582,3 +1582,174 @@ ping 192.168.1.1
 ![Day 10 Topology](images/day-10.4.png)
 
 ---
+## 📅 Day 11 — Life of a Packet
+
+### 🎯 Lab Objective
+
+Learn how to:
+
+- Identify source and destination MAC addresses
+- Observe how Ethernet frames change at each router hop
+- Understand Layer 2 forwarding through switches
+- Observe Layer 3 routing between networks
+- Use Packet Tracer Simulation Mode to analyze packet flow
+- Verify MAC addresses using router and PC CLI commands
+
+---
+
+### 🧰 Devices Used
+
+- 🛣️ Routers:
+
+  - R1 (2911)
+  - R2 (2911)
+  - R3 (2911)
+
+- 🔀 Switches:
+
+  - SW1 (2960-24TT)
+  - SW2 (2960-24TT)
+
+- 💻 PCs:
+
+  - PC1 → 192.168.1.1
+  - PC2 → 192.168.1.2
+  - PC3 → 192.168.1.3
+  - PC4 → 192.168.3.1
+  - PC5 → 192.168.3.2
+  - PC6 → 192.168.3.3
+
+---
+
+### 🌐 Network Overview
+
+| Network | Connected Devices |
+| -------- | ----------------- |
+| 192.168.1.0/24 | PC1, PC2, PC3, SW1, R1 |
+| 192.168.12.0/24 | R1 ↔ R2 |
+| 192.168.13.0/24 | R2 ↔ R3 |
+| 192.168.3.0/24 | R3, SW2, PC4, PC5, PC6 |
+
+---
+
+## 🔧 Task 1 — PC1 Pings PC4
+
+> **Before entering Simulation Mode, send one successful ping to complete ARP and MAC address learning.**
+
+### Verify MAC Addresses
+
+Use the following commands on each device.
+
+#### PCs
+
+```plaintext
+arp -a
+```
+
+#### Routers
+
+```plaintext
+show interfaces
+show arp
+```
+
+#### Simulation Mode
+
+Follow the ICMP packet and identify the Ethernet source and destination MAC addresses at each hop.
+
+### Identify the Source and Destination MAC Addresses
+
+| Segment | Source MAC | Destination MAC |
+| -------- | ---------- | --------------- |
+| A. PC1 → SW1 | PC1 NIC | R1 G0/1 |
+| B. SW1 → R1 | PC1 NIC | R1 G0/1 |
+| C. R1 → R2 | R1 G0/0 | R2 G0/0 |
+| D. R2 → R3 | R2 G0/1 | R3 G0/0 |
+| E. R3 → SW2 | R3 G0/1 | PC4 NIC |
+| F. SW2 → PC4 | R3 G0/1 | PC4 NIC |
+
+---
+
+## 🔧 Task 2 — PC1 Pings PC3
+
+> **Send one ping before entering Simulation Mode to populate the ARP tables.**
+
+### Verify MAC Addresses
+
+```plaintext
+arp -a
+show arp
+show interfaces
+```
+
+### Identify the Source and Destination MAC Addresses
+
+| Segment | Source MAC | Destination MAC |
+| -------- | ---------- | --------------- |
+| A. PC1 → SW1 | PC1 NIC | PC3 NIC |
+| B. SW1 → PC3 | PC1 NIC | PC3 NIC |
+
+> Since PC1 and PC3 are on the same LAN, the frame is switched directly and never reaches the router.
+
+---
+
+## 🔧 Task 3 — PC4 Pings PC1
+
+> **Again, send one successful ping before using Simulation Mode.**
+
+### Verify MAC Addresses
+
+```plaintext
+arp -a
+show arp
+show interfaces
+```
+
+### Identify the Source and Destination MAC Addresses
+
+| Segment | Source MAC | Destination MAC |
+| -------- | ---------- | --------------- |
+| A. PC4 → SW2 | PC4 NIC | R3 G0/1 |
+| B. SW2 → R3 | PC4 NIC | R3 G0/1 |
+| C. R3 → R2 | R3 G0/0 | R2 G0/1 |
+| D. R2 → R1 | R2 G0/0 | R1 G0/0 |
+| E. R1 → SW1 | R1 G0/1 | PC1 NIC |
+| F. SW1 → PC1 | R1 G0/1 | PC1 NIC |
+
+---
+
+## 🧪 Verification Commands
+
+### PCs
+
+```plaintext
+arp -a
+ipconfig
+```
+
+### Routers
+
+```plaintext
+show interfaces
+show arp
+show ip interface brief
+```
+
+---
+
+## 📊 Expected Results
+
+- Each router removes the incoming Ethernet frame and builds a new one for the next hop. ✅
+- The IP source and destination addresses remain unchanged throughout the route. ✅
+- The Ethernet source and destination MAC addresses change at every router. ✅
+- Switches forward frames without modifying the MAC addresses. ✅
+- Frames between devices on the same LAN keep the same source and destination MAC addresses. ✅
+
+---
+
+
+
+## 📸 Topology Screenshot
+![Day 11 Topology](images/day-11.png)
+
+---

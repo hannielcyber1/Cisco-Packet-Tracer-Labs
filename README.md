@@ -1753,3 +1753,270 @@ show ip interface brief
 ![Day 11 Topology](images/day-11.png)
 
 ---
+## 📅 Day 12 — Variable Length Subnet Masking (VLSM)
+
+### 🎯 Lab Objective
+
+Learn how to:
+
+- Subnet a /24 network using VLSM
+- Allocate subnets based on host requirements
+- Configure router interfaces with VLSM addresses
+- Configure PC IP addresses and default gateways
+- Configure static routes between routers
+- Verify end-to-end connectivity using ping
+
+---
+
+### 🧰 Devices Used
+
+- 🛣️ Routers:
+
+  - R1 (2911)
+  - R2 (2911)
+
+- 🔀 Switches:
+
+  - SW1 (2960-24TT)
+  - SW2 (2960-24TT)
+  - SW3 (2960-24TT)
+  - SW4 (2960-24TT)
+
+- 💻 PCs:
+
+  - PC1
+  - PC2
+  - PC3
+  - PC4
+
+---
+
+### 🌐 VLSM Addressing Plan
+
+Base Network: **192.168.5.0/24**
+
+| Network | Hosts Required | Network Address | Mask | First Host (PC) | Last Host (Router) |
+| -------- | -------------- | --------------- | ---- | --------------- | ------------------ |
+| LAN2 | 64 | 192.168.5.0/25 | 255.255.255.128 | 192.168.5.1 | 192.168.5.126 |
+| LAN1 | 45 | 192.168.5.128/26 | 255.255.255.192 | 192.168.5.129 | 192.168.5.190 |
+| LAN3 | 14 | 192.168.5.192/28 | 255.255.255.240 | 192.168.5.193 | 192.168.5.206 |
+| LAN4 | 9 | 192.168.5.208/28 | 255.255.255.240 | 192.168.5.209 | 192.168.5.222 |
+| R1 ↔ R2 | 2 | 192.168.5.224/30 | 255.255.255.252 | R1 - 192.168.5.225 | R2 - 192.168.5.226 |
+
+---
+
+### 🔧 Task 1 — Configure R1
+
+#### Configure G0/1 (LAN2)
+
+```plaintext
+enable
+configure terminal
+interface g0/1
+ip address 192.168.5.126 255.255.255.128
+no shutdown
+exit
+```
+
+#### Configure G0/0 (LAN1)
+
+```plaintext
+interface g0/0
+ip address 192.168.5.190 255.255.255.192
+no shutdown
+exit
+```
+
+#### Configure G0/0/0 (Link to R2)
+
+```plaintext
+interface g0/0/0
+ip address 192.168.5.225 255.255.255.252
+no shutdown
+exit
+```
+![Day 12 Topology](images/day-12.png)
+
+#### Configure Static Routes
+
+```plaintext
+ip route 192.168.5.192 255.255.255.240 192.168.5.226
+ip route 192.168.5.208 255.255.255.240 192.168.5.226
+```
+
+![Day 12 Topology](images/day-12.1.png)
+
+
+#### Verify
+
+```plaintext
+show ip interface brief
+show ip route
+write
+```
+
+---
+
+### 🔧 Task 2 — Configure R2
+
+#### Configure G0/0 (LAN3)
+
+```plaintext
+enable
+configure terminal
+interface g0/0
+ip address 192.168.5.206 255.255.255.240
+no shutdown
+exit
+```
+
+#### Configure G0/1 (LAN4)
+
+```plaintext
+interface g0/1
+ip address 192.168.5.222 255.255.255.240
+no shutdown
+exit
+```
+
+#### Configure G0/0/0 (Link to R1)
+
+```plaintext
+interface g0/0/0
+ip address 192.168.5.226 255.255.255.252
+no shutdown
+exit
+```
+![Day 12 Topology](images/day-12.2.png)
+
+
+#### Configure Static Routes
+
+```plaintext
+ip route 192.168.5.128 255.255.255.192 192.168.5.225
+ip route 192.168.5.0 255.255.255.128 192.168.5.225
+```
+
+![Day 12 Topology](images/day-12.3.png)
+
+
+
+#### Verify
+
+```plaintext
+show ip interface brief
+show ip route
+write
+```
+
+---
+
+### 💻 Task 3 — Configure PC IP Addresses
+
+#### PC1 (LAN1)
+
+- IP Address: **192.168.5.129**
+- Subnet Mask: **255.255.255.192**
+- Default Gateway: **192.168.5.190**
+
+---
+
+#### PC2 (LAN2)
+
+- IP Address: **192.168.5.1**
+- Subnet Mask: **255.255.255.128**
+- Default Gateway: **192.168.5.126**
+
+---
+
+#### PC3 (LAN3)
+
+- IP Address: **192.168.5.193**
+- Subnet Mask: **255.255.255.240**
+- Default Gateway: **192.168.5.206**
+
+---
+
+#### PC4 (LAN4)
+
+- IP Address: **192.168.5.209**
+- Subnet Mask: **255.255.255.240**
+- Default Gateway: **192.168.5.222**
+
+---
+
+## 🧪 Task 4 — Test Connectivity
+
+### From PC1
+
+```plaintext
+ping 192.168.5.209
+ping 192.168.5.193
+ping 192.168.5.1
+```
+
+---
+
+### From PC2
+
+```plaintext
+ping 192.168.5.129
+ping 192.168.5.193
+ping 192.168.5.209
+```
+
+---
+
+### From PC3
+
+```plaintext
+ping 192.168.5.1
+ping 192.168.5.129
+ping 192.168.5.209
+```
+
+---
+
+### From PC4
+
+```plaintext
+ping 192.168.5.1
+ping 192.168.5.129
+ping 192.168.5.193
+```
+
+---
+
+![Day 12 Topology](images/day-12.4.png)
+
+
+---
+## 📊 Expected Results
+
+- All VLSM subnets are correctly allocated. ✅
+- PCs use the first usable address in each subnet. ✅
+- Router interfaces use the last usable address in each subnet. ✅
+- Static routes allow communication between all LANs. ✅
+- Initial ping may time out due to ARP resolution. ✅
+- Subsequent pings succeed with **0% packet loss**. ✅
+
+---
+
+## 📚 Skills Practiced
+
+- Variable Length Subnet Masking (VLSM)
+- Network planning
+- IP address allocation
+- Static routing
+- Router interface configuration
+- Route verification
+- End-to-end connectivity testing
+
+---
+
+## 📸 Topology Screenshot
+
+![Day 12 Topology](images/day-12.5.png)
+
+
+---

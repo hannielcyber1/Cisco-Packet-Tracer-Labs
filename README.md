@@ -2020,3 +2020,279 @@ ping 192.168.5.193
 
 
 ---
+
+## 📅 Day 13 — VLANs (Part 1)
+
+### 🎯 Lab Objective
+
+Learn how to:
+
+- Configure VLANs on a Layer 2 switch
+- Assign switch ports to the correct VLANs
+- Configure router interfaces as default gateways for each VLAN
+- Name VLANs for easier administration
+- Configure PC IP addresses and default gateways
+- Test communication within VLANs
+- Observe VLAN broadcast domains using Packet Tracer Simulation Mode
+
+---
+
+### 🧰 Devices Used
+
+- 🛣️ Router:
+
+  - R1 (2911)
+
+- 🔀 Switches:
+
+  - SW1 (2960-24TT)
+
+- 💻 PCs:
+
+  - PC1
+  - PC2
+  - PC3
+  - PC4
+  - PC5
+  - PC6
+
+---
+
+### 🌐 VLAN Addressing Plan
+
+| VLAN | Department | Network | Router Gateway | PCs |
+|------|------------|---------|----------------|-----|
+| VLAN 10 | Engineering | 10.0.0.0/26 | 10.0.0.62 | PC1 (10.0.0.1), PC2 (10.0.0.2) |
+| VLAN 20 | HR | 10.0.0.64/26 | 10.0.0.126 | PC3 (10.0.0.65), PC4 (10.0.0.66) |
+| VLAN 30 | Sales | 10.0.0.128/26 | 10.0.0.190 | PC5 (10.0.0.129), PC6 (10.0.0.130) |
+
+---
+
+### 🔧 Task 1 — Configure R1
+
+#### Configure G0/0 (Engineering)
+
+```plaintext
+enable
+configure terminal
+interface g0/0
+ip address 10.0.0.62 255.255.255.192
+no shutdown
+exit
+```
+
+#### Configure G0/1 (HR)
+
+```plaintext
+interface g0/1
+ip address 10.0.0.126 255.255.255.192
+no shutdown
+exit
+```
+
+#### Configure G0/2 (Sales)
+
+```plaintext
+interface g0/2
+ip address 10.0.0.190 255.255.255.192
+no shutdown
+exit
+```
+
+#### Verify
+
+```plaintext
+show ip interface brief
+write
+```
+
+![Day 13 Topology](images/day-13.png)
+
+---
+
+### 🔧 Task 2 — Configure SW1 VLAN Membership
+
+#### Configure VLAN 10 Ports
+
+```plaintext
+enable
+configure terminal
+interface range f3/1,f4/1,g0/1
+switchport mode access
+switchport access vlan 10
+```
+
+#### Configure VLAN 20 Ports
+
+```plaintext
+interface range f5/1,f6/1,g1/1
+switchport mode access
+switchport access vlan 20
+```
+
+#### Configure VLAN 30 Ports
+
+```plaintext
+interface range f7/1,f8/1,g2/1
+switchport mode access
+switchport access vlan 30
+```
+
+#### Verify VLAN Assignment
+
+```plaintext
+show vlan brief
+```
+![Day 13 Topology](images/day-13.1.png)
+
+---
+
+### 🔧 Task 3 — Name the VLANs
+
+#### Configure VLAN Names
+
+```plaintext
+vlan 10
+name Engineering
+
+vlan 20
+name HR
+
+vlan 30
+name Sales
+```
+
+#### Verify
+
+```plaintext
+show vlan brief
+write
+```
+
+![Day 13 Topology](images/day-13.2.png)
+
+---
+
+### 💻 Task 4 — Configure PC IP Addresses
+
+#### PC1 (Engineering)
+
+- IP Address: **10.0.0.1**
+- Subnet Mask: **255.255.255.192**
+- Default Gateway: **10.0.0.62**
+
+---
+
+#### PC2 (Engineering)
+
+- IP Address: **10.0.0.2**
+- Subnet Mask: **255.255.255.192**
+- Default Gateway: **10.0.0.62**
+
+---
+
+#### PC3 (HR)
+
+- IP Address: **10.0.0.65**
+- Subnet Mask: **255.255.255.192**
+- Default Gateway: **10.0.0.126**
+
+---
+
+#### PC4 (HR)
+
+- IP Address: **10.0.0.66**
+- Subnet Mask: **255.255.255.192**
+- Default Gateway: **10.0.0.126**
+
+---
+
+#### PC5 (Sales)
+
+- IP Address: **10.0.0.129**
+- Subnet Mask: **255.255.255.192**
+- Default Gateway: **10.0.0.190**
+
+---
+
+#### PC6 (Sales)
+
+- IP Address: **10.0.0.130**
+- Subnet Mask: **255.255.255.192**
+- Default Gateway: **10.0.0.190**
+
+---
+
+## 🧪 Task 5 — Test Connectivity
+
+### Test Within Each VLAN
+
+#### Engineering
+
+```plaintext
+PC1> ping 10.0.0.2
+```
+
+#### HR
+
+```plaintext
+PC3> ping 10.0.0.66
+```
+
+#### Sales
+
+```plaintext
+PC5> ping 10.0.0.130
+```
+
+![Day 13 Topology](images/day-13.3.png)
+
+---
+
+### Test Broadcast Traffic
+
+Using **Packet Tracer Simulation Mode**, send a broadcast ping from one PC in each VLAN by pinging the subnet broadcast address.
+
+#### VLAN 10
+
+```plaintext
+ping 10.0.0.63
+```
+
+#### VLAN 20
+
+```plaintext
+ping 10.0.0.127
+```
+
+#### VLAN 30
+
+```plaintext
+ping 10.0.0.191
+```
+
+I observed that  only devices within the same VLAN should receive the broadcast frame.
+
+---
+
+## 📊 Expected Results
+
+- VLAN 10 is named **Engineering** ✅
+- VLAN 20 is named **HR** ✅
+- VLAN 30 is named **Sales** ✅
+- Switch ports are assigned to the correct VLANs ✅
+- Router interfaces use the last usable IP address in each subnet ✅
+- PCs use the correct default gateway ✅
+- Devices in the same VLAN communicate successfully ✅
+- Broadcast traffic remains within its VLAN and is not forwarded to other VLANs ✅
+
+---
+
+
+
+## 📸 Topology Screenshot
+
+![Day 13 Topology](images/day-13.4.png)
+
+
+---

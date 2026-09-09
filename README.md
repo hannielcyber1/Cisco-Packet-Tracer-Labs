@@ -2296,3 +2296,461 @@ I observed that  only devices within the same VLAN should receive the broadcast 
 
 
 ---
+
+## 📅 Day 14 — VLAN Configuration, Trunks & Router-on-a-Stick
+
+### 🎯 Lab Objectives
+
+Learn how to:
+
+* Create and configure VLANs across multiple switches
+* Configure switch access ports connected to end devices in their respective VLANs
+* Configure trunk links between switches (`SW1` and `SW2`) with:
+
+  * Specific allowed VLANs
+  * A custom native VLAN
+* Configure inter-VLAN routing using **Router-on-a-Stick** using `802.1Q` encapsulation
+* Verify end-to-end connectivity between PCs in different VLANs using ping
+
+---
+
+### 🧰 Devices Used
+
+* 🛣️ Router:
+
+  * **R1** (2911)
+
+* 🔀 Switches:
+
+  * **SW1** (2960-24TT)
+  * **SW2** (2960-24TT)
+
+* 💻 PCs:
+
+  * **VLAN 10:** PC1, PC2
+  * **VLAN 20:** PC5
+  * **VLAN 30:** PC3, PC4, PC6
+
+---
+
+### 🌐 Network Overview & Addressing Plan
+
+Base Network: **10.0.0.0/24**
+
+The network is subnetted into `/26` networks.
+
+| VLAN        | Subnet        | Subnet Mask     | Gateway    |
+| ----------- | ------------- | --------------- | ---------- |
+| **VLAN 10** | 10.0.0.0/26   | 255.255.255.192 | 10.0.0.62  |
+| **VLAN 20** | 10.0.0.64/26  | 255.255.255.192 | 10.0.0.126 |
+| **VLAN 30** | 10.0.0.128/26 | 255.255.255.192 | 10.0.0.190 |
+
+---
+
+### 🔧 Task 1 — Configure Router-on-a-Stick on R1
+
+Router-on-a-Stick allows a single physical router interface to route traffic between multiple VLANs.
+
+The router uses **802.1Q subinterfaces** to act as the default gateway for each VLAN.
+
+#### Enable the Physical Interface
+
+```
+enable
+configure terminal
+
+interface g0/0
+no shutdown
+```
+
+---
+
+#### Configure VLAN 10 Subinterface
+
+```
+interface g0/0.10
+encapsulation dot1Q 10
+ip address 10.0.0.62 255.255.255.192
+```
+
+---
+
+#### Configure VLAN 20 Subinterface
+
+```
+interface g0/0.20
+encapsulation dot1Q 20
+ip address 10.0.0.126 255.255.255.192
+```
+
+---
+
+#### Configure VLAN 30 Subinterface
+
+```
+interface g0/0.30
+encapsulation dot1Q 30
+ip address 10.0.0.190 255.255.255.192
+```
+
+---
+
+#### Verify Router Interfaces
+
+```
+show ip interface brief
+```
+
+Expected result:
+
+* `G0/0` should be enabled.
+* `G0/0.10` should have IP address `10.0.0.62`.
+* `G0/0.20` should have IP address `10.0.0.126`.
+* `G0/0.30` should have IP address `10.0.0.190`.
+
+---
+
+### 🔧 Task 2 — Configure VLANs on SW1
+
+Before assigning switch ports, create the VLANs.
+
+```
+enable
+configure terminal
+
+vlan 10
+vlan 20
+vlan 30
+
+vlan 1001
+```
+
+VLAN `1001` is used as the custom native VLAN.
+
+---
+
+#### Configure VLAN 10 Access Ports
+
+PC1 and PC2 belong to VLAN 10.
+
+```
+interface range f0/1 - 2
+switchport mode access
+switchport access vlan 10
+```
+
+---
+
+#### Configure VLAN 30 Access Ports
+
+PC3 and PC4 belong to VLAN 30.
+
+```
+interface range f0/3 - 4
+switchport mode access
+switchport access vlan 30
+```
+
+---
+
+#### Configure Trunk Link on SW1
+
+Configure the uplink connecting SW1 to SW2.
+
+```
+interface g0/1
+switchport mode trunk
+switchport trunk allowed vlan 10,20,30
+switchport trunk native vlan 1001
+```
+
+---
+
+#### Verify VLAN Configuration
+
+```
+show vlan brief
+```
+
+---
+
+#### Verify Trunk Configuration
+
+```
+show interfaces trunk
+```
+
+Expected result:
+
+* `G0/1` should be operating as a trunk.
+* Allowed VLANs should include `10,20,30`.
+* Native VLAN should be `1001`.
+
+---
+
+### 🔧 Task 3 — Configure VLANs on SW2
+
+Create the required VLANs.
+
+```
+enable
+configure terminal
+
+vlan 10
+vlan 20
+vlan 30
+
+vlan 1001
+```
+
+---
+
+#### Configure VLAN 20 Access Port
+
+PC5 belongs to VLAN 20.
+
+```
+interface f0/1
+switchport mode access
+switchport access vlan 20
+```
+
+---
+
+#### Configure VLAN 10 Access Ports
+
+If additional VLAN 10 PCs are connected to SW2:
+
+```
+interface range f0/2 - 3
+switchport mode access
+switchport access vlan 10
+```
+
+---
+
+#### Configure VLAN 30 Access Port
+
+Configure the appropriate port connected to PC6 as VLAN 30.
+
+```
+interface f0/4
+switchport mode access
+switchport access vlan 30
+```
+
+
+
+---
+
+### 🔗 Configure Trunk Links on SW2
+
+#### Trunk Link to SW1
+
+```
+interface g0/1
+switchport mode trunk
+switchport trunk allowed vlan 10,20,30
+switchport trunk native vlan 1001
+```
+
+---
+
+#### Trunk Link to R1
+
+Configure the switch interface connected to router `R1`.
+
+```
+interface g0/2
+switchport mode trunk
+switchport trunk allowed vlan 10,20,30
+switchport trunk native vlan 1001
+```
+
+> **Note:** If your router is connected to SW1 instead of SW2, configure the trunk on the appropriate switch interface.
+
+---
+
+#### Verify Trunk Configuration
+
+```
+show interfaces trunk
+```
+
+##### Expected result:
+
+* `G0/1` should be trunking to SW1.
+* `G0/2` should be trunking to R1.
+* Allowed VLANs should include `10,20,30`.
+* Native VLAN should be `1001`.
+
+---
+
+### 💻 Task 4 — Configure PC IP Addresses
+
+Configure the PCs under:
+
+**Desktop → IP Configuration**
+
+---
+
+#### VLAN 10
+
+##### PC1
+
+* IP Address: **10.0.0.1**
+* Subnet Mask: **255.255.255.192**
+* Default Gateway: **10.0.0.62**
+
+##### PC2
+
+* IP Address: **10.0.0.2**
+* Subnet Mask: **255.255.255.192**
+* Default Gateway: **10.0.0.62**
+
+---
+
+#### VLAN 20
+
+##### PC5
+
+* IP Address: **10.0.0.65**
+* Subnet Mask: **255.255.255.192**
+* Default Gateway: **10.0.0.126**
+
+---
+
+#### VLAN 30
+
+##### PC3
+
+* IP Address: **10.0.0.129**
+* Subnet Mask: **255.255.255.192**
+* Default Gateway: **10.0.0.190**
+
+##### PC4
+
+* IP Address: **10.0.0.130**
+* Subnet Mask: **255.255.255.192**
+* Default Gateway: **10.0.0.190**
+
+##### PC6
+
+* IP Address: **10.0.0.131**
+* Subnet Mask: **255.255.255.192**
+* Default Gateway: **10.0.0.190**
+
+---
+
+### 🧪 Task 5 — Test Connectivity
+
+After configuring the VLANs, trunks, and Router-on-a-Stick, test communication between devices.
+
+##### From PC1
+
+```plaintext
+ping 10.0.0.62
+```
+
+##### From PC5
+
+```plaintext
+ping 10.0.0.126
+```
+
+##### From PC3
+
+```plaintext
+ping 10.0.0.190
+```
+
+---
+
+### 🔁 Test Inter-VLAN Connectivity
+
+#### PC1 (VLAN 10) → PC5 (VLAN 20)
+
+```plaintext
+ping 10.0.0.65
+```
+
+
+
+#### PC1 (VLAN 10) → PC3 (VLAN 30)
+
+```
+ping 10.0.0.129
+```
+
+
+#### Additional Tests
+
+##### Within VLAN 10
+
+```
+PC1> ping 10.0.0.2
+```
+
+##### Within VLAN 30
+
+```
+PC3> ping 10.0.0.130
+```
+
+##### VLAN 20 → VLAN 30
+
+```
+PC5> ping 10.0.0.129
+```
+
+---
+
+
+
+## 💾 Save Configuration
+
+On all devices:
+
+```
+write memory
+```
+
+---
+
+## 📊 Expected Results
+
+* VLANs `10`, `20`, and `30` are created successfully. ✅
+* Switch access ports are assigned to the correct VLANs. ✅
+* Trunk links are configured between the switches. ✅
+* Only VLANs `10`, `20`, and `30` are allowed across the trunks. ✅
+* VLAN `1001` is configured as the custom native VLAN. ✅
+* Router `R1` uses subinterfaces with `802.1Q` encapsulation. ✅
+* Each router subinterface has the correct default gateway address. ✅
+* PCs can communicate with devices in the same VLAN. ✅
+* PCs can communicate with devices in different VLANs through Router-on-a-Stick. ✅
+* Inter-VLAN routing is successfully configured. ✅
+
+---
+
+## 📚 Skills Practiced
+
+* VLAN configuration
+* VLAN port assignment
+* Access port configuration
+* 802.1Q trunking
+* Allowed VLAN configuration
+* Native VLAN configuration
+* Router-on-a-Stick
+* Inter-VLAN routing
+* IP addressing and subnetting
+* Network connectivity troubleshooting
+* Ping testing and verification
+
+---
+
+## 📸 Topology Screenshot
+
+![Day 14 Topology](images/day-14.png)
+
+
+

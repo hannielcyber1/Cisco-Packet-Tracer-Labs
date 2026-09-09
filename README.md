@@ -2753,4 +2753,442 @@ write memory
 ![Day 14 Topology](images/day-14.png)
 
 
+## 📅 Day 15 — Inter-VLAN Routing Using a Multilayer Switch 
+ 
+### 🎯 Lab Objective 
+ 
+In this lab, I replaced the existing **Router-on-a-Stick (ROAS)** configuration between **R1** and **SW2** with a **point-to-point Layer 3 connection**. 
+ 
+The multilayer switch **SW2** was configured to perform **inter-VLAN routing** using **Switch Virtual Interfaces (SVIs)**. 
+ 
+This lab focuses on: 
+ 
+- 🔀 Configuring Layer 3 switching 
+- 🌐 Replacing Router-on-a-Stick with a routed point-to-point link 
+- 🖥️ Configuring Switch Virtual Interfaces (SVIs) 
+- 🔁 Enabling inter-VLAN routing on a multilayer switch 
+- 🛣️ Configuring a default route 
+- 🌍 Testing connectivity to the Internet 
+ 
+--- 
+ 
+### 🧰 Devices Used 
+ 
+- 🛣️ Router: 
+  - **R1** (2911)
+ 
+- 🔀 Switches: 
+  - **SW1** — Layer 2 Switch (2960-24TT)
+  - **SW2** — Multilayer Switch (3650-24PS)
+ 
+- 💻 Hosts: 
+  - Hosts in **VLAN 10** 
+  - Hosts in **VLAN 20** 
+  - Hosts in **VLAN 30** 
+ 
+- 🌐 Internet Router 
+ 
+--- 
+ 
+### 🌐 Network Overview 
+ 
+The network was preconfigured from the previous lab. 
+ 
+The following configurations were already completed: 
+ 
+- Hosts were assigned to the correct VLANs 
+- SW1 and SW2 were connected using a trunk link 
+- VLANs 10, 20, and 30 were configured 
+- Router-on-a-Stick was previously configured between R1 and SW2 
+ 
+For this lab: 
+ 
+- The Router-on-a-Stick configuration was removed from R1 
+- The connection between R1 and SW2 was converted into a Layer 3 point-to-point connection 
+- SW2 was configured as a multilayer switch 
+- SVIs were configured for each VLAN 
+- SW2 was configured with a default route pointing to R1 
+- Inter-VLAN and Internet connectivity were tested 
+ 
+--- 
+ 
+### 📊 Addressing Plan 
+ 
+#### VLAN Networks 
+ 
+| VLAN | Department | Network | Subnet Mask | SVI / Default Gateway | 
+|------|------------|---------|-------------|-----------------------| 
+| VLAN 10 | Engineering | 10.0.0.0/26 | 255.255.255.192 | 10.0.0.62 | 
+| VLAN 20 | HR | 10.0.0.64/26 | 255.255.255.192 | 10.0.0.126 | 
+| VLAN 30 | Sales | 10.0.0.128/26 | 255.255.255.192 | 10.0.0.190 | 
+ 
+#### R1 ↔ SW2 Point-to-Point Link 
+ 
+Network: **10.0.0.192/30** 
+ 
+| Device | Interface | IP Address | Subnet Mask | 
+|--------|-----------|------------|-------------| 
+| SW2 | G1/0/2 | 10.0.0.193 | 255.255.255.252 | 
+| R1 | G0/0 | 10.0.0.194 | 255.255.255.252 | 
+ 
+--- 
+ 
+### 🔧 Task 1 — Remove Router-on-a-Stick Configuration from R1 
+ 
+The previous lab used **Router-on-a-Stick**. 
+ 
+The following subinterfaces were removed: 
+ 
+- G0/0.10 
+- G0/0.20 
+- G0/0.30 
+ 
+#### Remove VLAN Subinterfaces 
+ 
+```plaintext
+enable
+configure terminal
+
+no interface g0/0.10
+no interface g0/0.20
+no interface g0/0.30
+```
+ 
+#### Reset the Physical Interface 
+ 
+```plaintext
+default interface g0/0
+```
+ 
+--- 
+ 
+### 🔧 Task 2 — Configure the Layer 3 Interface on R1 
+ 
+Configure R1 G0/0 with the point-to-point IP address. 
+ 
+```plaintext
+interface g0/0
+ip address 10.0.0.194 255.255.255.252
+no shutdown
+```
+ 
+#### Verify the Interface 
+ 
+```plaintext
+show ip interface brief
+```
+ 
+ ![Day 15 Topology](images/day-15.1.png) 
+ 
+### 🔧 Task 3 — Configure SW2 as a Multilayer Switch 
+ 
+First, reset the interface connecting SW2 to R1. 
+ 
+```plaintext
+enable
+configure terminal
+
+default interface g1/0/2
+```
+ 
+#### Enable Layer 3 Routing 
+ 
+```plaintext
+ip routing
+```
+ 
+ > The `ip routing` command allows the multilayer switch to route packets between different VLANs. 
+ 
+#### Convert the Interface into a Routed Port 
+ 
+```plaintext
+interface g1/0/2
+no switchport
+```
+ 
+#### Configure the Routed Interface 
+ 
+```plaintext
+ip address 10.0.0.193 255.255.255.252
+no shutdown
+```
+ 
+#### Verify the Layer 3 Interface 
+ 
+```plaintext
+show ip interface brief
+```
+
+
+### 🔧 Task 4 — Configure a Default Route on SW2 
+ 
+Configure a default route on SW2. 
+ 
+The next hop is **R1 G0/0**. 
+ 
+```plaintext
+ip route 0.0.0.0 0.0.0.0 10.0.0.194
+```
+ 
+#### 🧠 Default Route Explanation 
+ 
+The command above means: 
+ 
+- Traffic destined for unknown networks 
+- Will be forwarded to R1 
+- Next-hop address: **10.0.0.194** 
+ 
+#### Verify the Routing Table 
+ 
+```plaintext
+show ip route
+```
+ 
+The default route should appear similar to: 
+ 
+```plaintext
+S* 0.0.0.0/0 [1/0] via 10.0.0.194
+```
+ 
+--- 
+ 
+### 🔧 Task 5 — Configure the VLAN 10 SVI 
+ 
+VLAN 10 uses: 
+ 
+- Network: **10.0.0.0/26** 
+- Last usable IP address: **10.0.0.62** 
+ 
+#### Configure the SVI 
+ 
+```plaintext
+interface vlan 10
+ip address 10.0.0.62 255.255.255.192
+no shutdown
+```
+
+### 🔧 Task 6 — Configure the VLAN 20 SVI 
+ 
+VLAN 20 uses: 
+ 
+- Network: **10.0.0.64/26** 
+- Last usable IP address: **10.0.0.126** 
+ 
+#### Configure the SVI 
+ 
+```plaintext
+interface vlan 20
+ip address 10.0.0.126 255.255.255.192
+no shutdown
+```
+ 
+
+ 
+### 🔧 Task 7 — Configure the VLAN 30 SVI 
+ 
+VLAN 30 uses: 
+ 
+- Network: **10.0.0.128/26** 
+- Last usable IP address: **10.0.0.190** 
+ 
+#### Configure the SVI 
+ 
+```plaintext
+interface vlan 30
+ip address 10.0.0.190 255.255.255.192
+no shutdown
+```
+ 
+ 
+### 📊 Final SVI Addressing 
+ 
+| VLAN | Network | SVI Address | Subnet Mask | 
+|------|---------|-------------|-------------| 
+| VLAN 10 | 10.0.0.0/26 | 10.0.0.62 | 255.255.255.192 | 
+| VLAN 20 | 10.0.0.64/26 | 10.0.0.126 | 255.255.255.192 | 
+| VLAN 30 | 10.0.0.128/26 | 10.0.0.190 | 255.255.255.192 | 
+ 
+--- 
+ 
+### 🔍 Task 8 — Verify VLAN Configuration 
+ 
+Verify that the VLANs are active. 
+ 
+```plaintext
+show vlan brief
+```
+ 
+Expected VLANs: 
+ 
+- VLAN 10 
+- VLAN 20 
+- VLAN 30 
+ 
+--- 
+ 
+### 🔍 Task 9 — Verify the Trunk Connection 
+ 
+The connection between SW1 and SW2 should remain configured as a trunk. 
+ 
+```plaintext
+show interfaces trunk
+```
+ 
+Expected result: 
+ 
+- The trunk link should be active 
+- VLANs 10, 20, and 30 should be allowed across the trunk 
+ 
+--- 
+ 
+### 🔍 Task 10 — Verify Layer 3 Interfaces 
+ 
+Use: 
+ 
+```plaintext
+show ip interface brief
+```
+ 
+Expected interfaces: 
+ 
+| Device | Interface | IP Address | 
+|--------|-----------|------------| 
+| R1 | G0/0 | 10.0.0.194 | 
+| SW2 | G1/0/2 | 10.0.0.193 | 
+| SW2 | VLAN 10 | 10.0.0.62 | 
+| SW2 | VLAN 20 | 10.0.0.126 | 
+| SW2 | VLAN 30 | 10.0.0.190 | 
+ 
+All active interfaces should show: 
+ 
+- Status: **up** 
+- Protocol: **up** 
+ 
+--- 
+  ![Day 15 Topology](images/day-15.2.png) 
+  
+### 🧪 Task 11 — Test Inter-VLAN Connectivity 
+ 
+After configuring the SVIs, test communication between devices in different VLANs. 
+ 
+#### VLAN 10 → VLAN 20 
+ 
+From a host in VLAN 10: 
+ 
+```plaintext
+ping 10.0.0.65
+```
+ 
+#### VLAN 10 → VLAN 30 
+ 
+From a host in VLAN 10: 
+ 
+```plaintext
+ping 10.0.0.129
+```
+ 
+ 
+#### VLAN 20 → VLAN 30 
+ 
+From a host in VLAN 20: 
+ 
+```plaintext
+ping 10.0.0.129
+```
+ 
+
+ 
+### 🧠 How Inter-VLAN Routing Works 
+ 
+When a host sends traffic to another VLAN: 
+ 
+1. The host sends the packet to its default gateway. 
+2. The default gateway is the SVI configured on SW2. 
+3. SW2 receives the packet. 
+4. SW2 performs Layer 3 routing. 
+5. The packet is forwarded to the destination VLAN. 
+6. The destination host receives the packet. 
+ 
+> 💡 Unlike Router-on-a-Stick, inter-VLAN routing is now performed directly by the multilayer switch. 
+ 
+--- 
+ 
+### 🌍 Task 12 — Test Internet Connectivity 
+ 
+Routes have already been configured on: 
+ 
+- R1 
+- The Internet Router 
+ 
+SW2 uses its default route to send external traffic to R1. 
+ 
+#### Ping the Internet 
+ 
+From a PC: 
+ 
+```plaintext
+ping 1.1.1.1
+```
+ 
+
+ 
+### 💾 Save Configuration 
+ 
+#### On R1 
+ 
+```plaintext
+write memory
+```
+ 
+
+ 
+#### On SW2 
+ 
+```plaintext
+write memory
+```
+ 
+
+--- 
+ 
+### 📊 Expected Results 
+ 
+- Router-on-a-Stick configuration is removed from R1 ✅ 
+- R1 G0/0 is configured as a Layer 3 interface ✅ 
+- SW2 G1/0/2 is configured as a routed Layer 3 port ✅ 
+- The R1 ↔ SW2 point-to-point connection is operational ✅ 
+- `ip routing` is enabled on the multilayer switch ✅ 
+- A default route is configured on SW2 pointing to 10.0.0.194 ✅ 
+- VLAN 10 SVI uses 10.0.0.62 ✅ 
+- VLAN 20 SVI uses 10.0.0.126 ✅ 
+- VLAN 30 SVI uses 10.0.0.190 ✅ 
+- Inter-VLAN routing is successfully configured on SW2 ✅ 
+- Devices in different VLANs can communicate successfully ✅ 
+- Internet connectivity to 1.1.1.1 is successful ✅ 
+ 
+--- 
+ 
+### 📚 Skills Practiced 
+ 
+- Multilayer switching 
+- Layer 3 switching 
+- Switch Virtual Interfaces (SVIs) 
+- Inter-VLAN routing 
+- Routed switch ports 
+- Converting Layer 2 ports to Layer 3 ports 
+- Router-on-a-Stick migration 
+- Point-to-point IP addressing 
+- Default route configuration 
+- VLAN routing 
+- Routing table verification 
+- Ping testing 
+- Network troubleshooting 
+ 
+--- 
+ 
+### 📸 Topology Screenshot 
+ 
+![Day 18 Topology](images/day-15.png) 
+ 
+---
 

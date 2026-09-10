@@ -2775,11 +2775,11 @@ This lab focuses on:
 ### 🧰 Devices Used 
  
 - 🛣️ Router: 
-  - **R1** (2911)
+  - **R1** (Cisco 2911)
  
 - 🔀 Switches: 
-  - **SW1** — Layer 2 Switch (2960-24TT)
-  - **SW2** — Multilayer Switch (3650-24PS)
+  - **SW1** — Layer 2 Switch (Cisco 2960-24TT)
+  - **SW2** — Multilayer Switch (Cisco 3650-24PS)
  
 - 💻 Hosts: 
   - Hosts in **VLAN 10** 

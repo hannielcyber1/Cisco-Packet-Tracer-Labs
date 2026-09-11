@@ -3188,7 +3188,649 @@ write memory
  
 ### 📸 Topology Screenshot 
  
-![Day 18 Topology](images/day-15.png) 
+![Day 15 Topology](images/day-15.png) 
  
+---
+## 📅 Day 16 — DTP & VTP Configuration
+
+### 🎯 Lab Objective
+
+In this lab, I configured **Dynamic Trunking Protocol (DTP)** and **VLAN Trunking Protocol (VTP)** across three Cisco switches.
+
+The switches were connected using manually configured trunk links, and DTP negotiation was disabled on the switch-to-switch connections.
+
+I also configured different VTP operating modes:
+
+- **SW1** as a VTP Server
+- **SW2** as a VTP Transparent Switch
+- **SW3** as a VTP Client
+
+This lab focuses on:
+
+- 🔀 Configuring trunk links between switches
+- 🚫 Disabling DTP negotiation
+- 🌐 Configuring a VTP domain
+- 🖥️ Configuring VTP Server mode
+- 🔄 Configuring VTP Transparent mode
+- 📥 Configuring VTP Client mode
+- 🏷️ Creating and propagating VLANs
+- 🔌 Configuring host ports as access ports
+- 🔍 Verifying trunk and VTP configurations
+
+---
+
+### 🧰 Devices Used
+
+- 🔀 Switches:
+
+  - **SW1** (Cisco 2960-24TT)
+  - **SW2** (Cisco 2960-24TT)
+  - **SW3** (Cisco 2960-24TT)
+
+- 💻 PCs:
+
+  - PC1
+  - PC2
+  - PC3
+  - PC4
+  - PC5
+  - PC6
+  - PC7
+  - PC8
+  - PC9
+
+---
+
+### 🌐 Network Overview
+
+The topology consists of three switches connected in a linear topology:
+
+```text
+SW1 ───── SW2 ───── SW3
+```
+
+The connections between the switches were manually configured as trunk links.
+
+DTP was disabled to prevent automatic trunk negotiation.
+
+The VTP domain used in this lab is:
+
+```text
+CCNA
+```
+
+The VTP modes were configured as follows:
+
+| Switch | VTP Mode |
+|--------|----------|
+| SW1 | Server |
+| SW2 | Transparent |
+| SW3 | Client |
+
+---
+
+### 📊 VLAN Addressing Plan
+
+| VLAN | Network | Subnet Mask | Host Addresses |
+|------|---------|-------------|----------------|
+| VLAN 10 | 10.0.0.0/26 | 255.255.255.192 | 10.0.0.1, 10.0.0.2 |
+| VLAN 20 | 10.0.0.64/26 | 255.255.255.192 | 10.0.0.65, 10.0.0.66 |
+| VLAN 30 | 10.0.0.128/26 | 255.255.255.192 | 10.0.0.129, 10.0.0.130 |
+| VLAN 40 | 10.0.0.192/26 | 255.255.255.192 | 10.0.0.193, 10.0.0.194 |
+
+---
+
+### 🔧 Task 1 — Configure Switch-to-Switch Trunk Ports
+
+The interfaces connecting the switches were manually configured as trunk ports.
+
+DTP negotiation was disabled using:
+
+```plaintext
+switchport nonegotiate
+```
+
+This prevents the switches from automatically negotiating trunk links.
+
+---
+
+#### Configure SW1 Trunk Interface
+
+The interface connecting SW1 to SW2 is:
+
+```text
+G0/1
+```
+
+Configuration:
+
+```plaintext
+enable
+configure terminal
+
+interface g0/1
+switchport mode trunk
+switchport nonegotiate
+
+end
+write
+```
+
+---
+
+#### Configure SW2 Trunk Interfaces
+
+SW2 connects to both SW1 and SW3.
+
+The following interfaces were configured as trunk ports:
+
+- G0/1 → SW1
+- G0/2 → SW3
+
+```plaintext
+enable
+configure terminal
+
+interface range g0/1-2
+switchport mode trunk
+switchport nonegotiate
+
+end
+write
+```
+
+---
+
+#### Configure SW3 Trunk Interface
+
+The interface connecting SW3 to SW2 is:
+
+```text
+G0/1
+```
+
+Configuration:
+
+```plaintext
+enable
+configure terminal
+
+interface g0/1
+switchport mode trunk
+switchport nonegotiate
+
+end
+write
+```
+
+---
+
+#### Verify Trunk Interfaces
+
+Use:
+
+```plaintext
+show interfaces trunk
+```
+
+To verify the administrative and operational mode of an interface:
+
+```plaintext
+show interfaces g0/1 switchport
+```
+
+On SW2:
+
+```plaintext
+show interfaces g0/1 switchport
+show interfaces g0/2 switchport
+```
+
+The trunk interfaces should show:
+
+```text
+Administrative Mode: trunk
+Operational Mode: trunk
+Negotiation of Trunking: Off
+```
+
+---
+
+### 🔧 Task 2 — Configure SW1 as the VTP Server
+
+SW1 was configured in the VTP domain:
+
+```text
+CCNA
+```
+
+By default, the switch operates in VTP Server mode.
+
+#### Configure the VTP Domain
+
+```plaintext
+enable
+configure terminal
+
+vtp domain CCNA
+```
+
+---
+
+#### Verify VTP Status
+
+```plaintext
+show vtp status
+```
+
+The important information should include:
+
+```text
+VTP Operating Mode : Server
+VTP Domain Name : CCNA
+```
+
+---
+
+### 🔧 Task 3 — Create VLANs on SW1
+
+The following VLANs were created on SW1:
+
+- VLAN 10
+- VLAN 20
+- VLAN 30
+
+Configuration:
+
+```plaintext
+configure terminal
+
+vlan 10
+exit
+
+vlan 20
+exit
+
+vlan 30
+exit
+```
+
+#### Verify VLANs
+
+```plaintext
+show vlan brief
+```
+
+The VLAN database should contain:
+
+```text
+10 VLAN0010
+20 VLAN0020
+30 VLAN0030
+```
+
+Since SW1 operates as the VTP Server, VLAN information is advertised through the VTP domain.
+
+SW2 and SW3 received VLANs 10, 20, and 30.
+
+---
+
+### 🔧 Task 4 — Configure SW1 Access Ports
+
+The ports connected to hosts were manually configured as access ports.
+
+#### VLAN 10
+
+```plaintext
+interface range f0/1-2
+switchport mode access
+switchport access vlan 10
+```
+
+#### VLAN 20
+
+```plaintext
+interface f0/3
+switchport mode access
+switchport access vlan 20
+```
+
+Save the configuration:
+
+```plaintext
+write
+```
+
+---
+
+### 🔧 Task 5 — Configure SW2 as a VTP Transparent Switch
+
+SW2 was configured to operate in VTP Transparent mode.
+
+```plaintext
+enable
+configure terminal
+
+vtp mode transparent
+```
+
+---
+
+#### Verify VTP Mode
+
+```plaintext
+show vtp status
+```
+
+The switch should display:
+
+```text
+VTP Operating Mode : Transparent
+VTP Domain Name : CCNA
+```
+
+---
+
+### 🔧 Task 6 — Create VLAN 40 on SW2
+
+VLAN 40 was created locally on SW2.
+
+```plaintext
+configure terminal
+
+vlan 40
+```
+
+Verify:
+
+```plaintext
+show vlan brief
+```
+
+#### VLAN 40 Result
+
+VLAN 40 is stored locally in the VLAN database of SW2.
+
+Because SW2 operates in VTP Transparent mode, VLAN 40 is **not added to the VLAN databases of SW1 and SW3**.
+
+| Switch | VLAN 40 |
+|--------|---------|
+| SW1 | ❌ Not Added |
+| SW2 | ✅ Added |
+| SW3 | ❌ Not Added |
+
+---
+
+
+### 🔧 Task 7 — Configure SW2 Access Ports
+
+The host ports were configured as access ports and assigned to VLAN 40.
+
+```plaintext
+interface range f0/1-2
+switchport mode access
+switchport access vlan 40
+```
+
+Save the configuration:
+
+```plaintext
+write
+```
+
+---
+
+### 🔧 Task 8 — Configure SW3 as a VTP Client
+
+SW3 was configured in VTP Client mode.
+
+```plaintext
+enable
+configure terminal
+
+vtp mode client
+```
+
+---
+
+#### Verify VTP Mode
+
+```plaintext
+show vtp status
+```
+
+The switch should display:
+
+```text
+VTP Operating Mode : Client
+VTP Domain Name : CCNA
+```
+
+---
+
+### 🔧 Task 9 — Attempt to Create VLAN 50 on SW3
+
+The following command was entered:
+
+```plaintext
+vlan 50
+```
+
+The switch returned:
+
+```text
+VTP VLAN configuration not allowed when device is in CLIENT mode.
+```
+
+#### Result
+
+VLAN 50 was **not added**.
+
+A VTP Client cannot create, modify, or delete VLANs locally.
+
+| Switch | VTP Mode | Can Create VLANs Locally? |
+|--------|----------|---------------------------|
+| SW1 | Server | ✅ Yes |
+| SW2 | Transparent | ✅ Yes |
+| SW3 | Client | ❌ No |
+
+---
+
+ ## SW1
+ ![Day 16 Topology](images/day-16.3.png)
+
+ ## SW2
+ ![Day 16 Topology](images/day-16.2.png)
+
+ ## SW3
+ ![Day 16 Topology](images/day-16.1.png)
+
+---
+
+### 🔧 Task 10 — Configure SW3 Access Ports
+
+#### VLAN 10
+
+```plaintext
+interface f0/1
+switchport mode access
+switchport access vlan 10
+```
+
+---
+
+#### VLAN 30
+
+```plaintext
+interface range f0/2-3
+switchport mode access
+switchport access vlan 30
+```
+
+---
+
+#### VLAN 20
+
+```plaintext
+interface f0/4
+switchport mode access
+switchport access vlan 20
+```
+
+Save the configuration:
+
+```plaintext
+write
+```
+
+---
+
+### 🔍 Task 11 — Verify VLAN Configuration
+
+On each switch, use:
+
+```plaintext
+show vlan brief
+```
+
+This command displays:
+
+- VLAN IDs
+- VLAN names
+- VLAN status
+- Switch ports assigned to each VLAN
+
+---
+
+### 🔍 Task 12 — Verify VTP Configuration
+
+Use:
+
+```plaintext
+show vtp status
+```
+
+Verify the following configuration:
+
+#### SW1
+
+```text
+VTP Operating Mode : Server
+VTP Domain Name : CCNA
+```
+
+#### SW2
+
+```text
+VTP Operating Mode : Transparent
+VTP Domain Name : CCNA
+```
+
+#### SW3
+
+```text
+VTP Operating Mode : Client
+VTP Domain Name : CCNA
+```
+
+---
+
+### 🔍 Task 13 — Verify DTP and Switchport Modes
+
+To verify a specific interface:
+
+```plaintext
+show interfaces g0/1 switchport
+```
+
+On SW2:
+
+```plaintext
+show interfaces g0/1 switchport
+show interfaces g0/2 switchport
+```
+
+The trunk interfaces should show:
+
+```text
+Administrative Mode: trunk
+Operational Mode: trunk
+Negotiation of Trunking: Off
+```
+
+This confirms that:
+
+- The interface was manually configured as a trunk
+- The interface is operationally functioning as a trunk
+- DTP negotiation is disabled
+
+---
+
+### 🧠 DTP on Access Ports
+
+The host-facing interfaces were manually configured using:
+
+```plaintext
+switchport mode access
+```
+
+This forces the ports to operate as access ports instead of dynamically negotiating trunk links.
+
+For additional manual control, DTP negotiation can also be explicitly disabled using:
+
+```plaintext
+switchport nonegotiate
+```
+
+Example:
+
+```plaintext
+interface f0/1
+switchport mode access
+switchport access vlan 10
+switchport nonegotiate
+```
+
+---
+
+## 📊 Expected Results
+
+- Switch-to-switch links are manually configured as trunk ports. ✅
+- DTP negotiation is disabled on all switch-to-switch trunk ports. ✅
+- SW1 operates as a VTP Server in the **CCNA** domain. ✅
+- VLANs 10, 20, and 30 are created on SW1. ✅
+- VLANs 10, 20, and 30 are propagated through the VTP domain. ✅
+- SW2 operates in VTP Transparent mode. ✅
+- VLAN 40 exists locally on SW2 only. ✅
+- VLAN 40 is not added to SW1 or SW3 through VTP. ✅
+- SW3 operates as a VTP Client. ✅
+- VLAN 50 cannot be created locally on SW3. ✅
+- Host-facing ports are manually configured as access ports. ✅
+- Host ports are assigned to their correct VLANs. ✅
+- Administrative and operational trunk modes are successfully verified. ✅
+- All configurations are saved successfully. ✅
+
+---
+
+## 📚 Skills Practiced
+
+- Dynamic Trunking Protocol (DTP)
+- VLAN Trunking Protocol (VTP)
+- VTP Server mode
+- VTP Transparent mode
+- VTP Client mode
+- VLAN creation and management
+- VLAN propagation
+- Trunk configuration
+- Access port configuration
+- Switchport verification
+- VLAN database verification
+
+---
+
+## 📸 Topology Screenshot
+
+![Day 16 Topology](images/day-16.png)
+
 ---
 

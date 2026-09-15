@@ -3834,3 +3834,416 @@ switchport nonegotiate
 
 ---
 
+## 📅 Day 17 — Analyzing Spanning Tree Protocol (STP)
+
+### 🎯 Lab Objective
+
+In this lab, I analyzed **Spanning Tree Protocol (STP)** in a multi-switch topology.
+
+The purpose of the lab was to identify the **root bridge** and determine the STP role of each switch port. I also verified the results using the Cisco IOS command:
+
+```plaintext
+show spanning-tree
+```
+
+> ⚠️ **Important:** Link lights were turned off in Cisco Packet Tracer for this lab.
+>
+> Go to **Options > Preferences > Show Link Lights** and disable the option.
+
+This lab focuses on:
+
+- 🌳 Understanding Spanning Tree Protocol (STP)
+- 👑 Identifying the root bridge
+- 🔌 Identifying root ports
+- 🎯 Identifying designated ports
+- 🚫 Identifying alternate/non-designated ports
+- 🔍 Verifying STP information using the CLI
+- 📊 Understanding bridge priority, MAC address, and path cost
+
+---
+
+### 🧰 Devices Used
+
+- 🔀 **SW1** — Cisco 2960-24TT
+- 🔀 **SW2** — Cisco 2960-24TT
+- 🔀 **SW3** — Cisco 2960-24TT
+- 🔀 **SW4** — Cisco 2960-24TT
+
+---
+
+### 🌐 Network Overview
+
+The topology consists of four interconnected Cisco switches. The redundant links create multiple Layer 2 paths, so STP is used to prevent switching loops.
+STP determines which ports should forward traffic and which redundant ports should be placed into a blocking state.
+
+---
+
+### 🧠 STP Root Bridge
+
+The **root bridge is SW3**.
+
+This was confirmed from the output of:
+
+```plaintext
+show spanning-tree
+```
+
+on SW3, which displayed:
+
+```text
+This bridge is the root
+```
+
+SW3 has the lowest bridge priority:
+
+```text
+Bridge ID Priority 24577
+```
+
+Therefore, SW3 was elected as the root bridge.
+
+---
+
+### 📊 Bridge Information
+
+| Switch | Bridge Priority | MAC Address | STP Status |
+|--------|-----------------|-------------|------------|
+| SW1 | 32769 | 0001.4338.79D8 | Non-root bridge |
+| SW2 | 28673 | 0002.16D6.D0B8 | Non-root bridge |
+| SW3 | 24577 | 00E0.F9E6.44A5 | **Root bridge** |
+| SW4 | 32769 | 0090.0C01.9587 | Non-root bridge |
+
+The lowest bridge ID is selected as the root bridge.
+
+---
+
+### 🔧 Task 1 — Identify the Root Bridge
+
+The first task was to determine which switch became the root bridge.
+
+On each switch, the following command was used:
+
+```plaintext
+show spanning-tree
+```
+
+On SW3, the output showed:
+
+```text
+Root ID Priority 24577
+Address 00E0.F9E6.44A5
+
+This bridge is the root
+```
+
+### ✅ Result
+
+**SW3 is the root bridge.**
+
+---
+
+### 🔧 Task 2 — Identify STP Port Roles on SW1
+
+| Interface | Role | Status | Cost |
+|-----------|------|--------|------|
+| F0/1 | Alternate | Blocking | 19 |
+| F0/2 | Alternate | Blocking | 19 |
+| F0/3 | Alternate | Blocking | 19 |
+| F0/4 | Root | Forwarding | 19 |
+
+### SW1 Port Roles
+
+```text
+SW1
+F0/1: Alternate / Blocking
+F0/2: Alternate / Blocking
+F0/3: Alternate / Blocking
+F0/4: Root / Forwarding
+```
+
+SW1's root port is **F0/4**.
+
+---
+
+### 🔧 Task 3 — Identify STP Port Roles on SW2
+
+| Interface | Role | Status | Cost |
+|-----------|------|--------|------|
+| F0/1 | Designated | Forwarding | 19 |
+| F0/2 | Designated | Forwarding | 19 |
+| F0/3 | Alternate | Blocking | 19 |
+| G0/1 | Root | Forwarding | 4 |
+
+### SW2 Port Roles
+
+```text
+SW2
+F0/1: Designated / Forwarding
+F0/2: Designated / Forwarding
+F0/3: Alternate / Blocking
+G0/1: Root / Forwarding
+```
+
+SW2's root port is **G0/1**.
+
+---
+
+### 🔧 Task 4 — Identify STP Port Roles on SW3
+
+SW3 is the root bridge. Therefore, all active ports on SW3 are designated ports.
+
+| Interface | Role | Status | Cost |
+|-----------|------|--------|------|
+| F0/1 | Designated | Forwarding | 19 |
+| F0/2 | Designated | Forwarding | 19 |
+| F0/3 | Designated | Forwarding | 19 |
+| G0/1 | Designated | Forwarding | 4 |
+
+### SW3 Port Roles
+
+```text
+SW3
+F0/1: Designated / Forwarding
+F0/2: Designated / Forwarding
+F0/3: Designated / Forwarding
+G0/1: Designated / Forwarding
+```
+
+---
+
+### 🔧 Task 5 — Identify STP Port Roles on SW4
+
+| Interface | Role | Status | Cost |
+|-----------|------|--------|------|
+| G0/1 | Designated | Forwarding | 4 |
+| G0/2 | Root | Forwarding | 4 |
+
+### SW4 Port Roles
+
+```text
+SW4
+G0/1: Designated / Forwarding
+G0/2: Root / Forwarding
+```
+
+SW4's root port is **G0/2**.
+
+---
+
+### 📊 Complete STP Port-Role Summary
+
+| Switch | Interface | STP Role | Status |
+|--------|-----------|----------|--------|
+| SW1 | F0/1 | Alternate | Blocking |
+| SW1 | F0/2 | Alternate | Blocking |
+| SW1 | F0/3 | Alternate | Blocking |
+| SW1 | F0/4 | Root | Forwarding |
+| SW2 | F0/1 | Designated | Forwarding |
+| SW2 | F0/2 | Designated | Forwarding |
+| SW2 | F0/3 | Alternate | Blocking |
+| SW2 | G0/1 | Root | Forwarding |
+| SW3 | F0/1 | Designated | Forwarding |
+| SW3 | F0/2 | Designated | Forwarding |
+| SW3 | F0/3 | Designated | Forwarding |
+| SW3 | G0/1 | Designated | Forwarding |
+| SW4 | G0/1 | Designated | Forwarding |
+| SW4 | G0/2 | Root | Forwarding |
+
+---
+
+### 🔍 Task 6 — Verify STP Using the CLI
+
+The STP configuration was verified using:
+
+```plaintext
+show spanning-tree
+```
+
+This command displays:
+
+- Root bridge information
+- Bridge ID
+- Bridge priority
+- MAC address
+- Root path cost
+- Root port
+- Port roles
+- Port states
+- Interface cost
+
+---
+
+### 💻 SW1 Verification
+
+```plaintext
+SW1#show spanning-tree
+```
+
+Important result:
+
+```text
+Root ID Priority 24577
+Address 00E0.F9E6.44A5
+Cost 19
+Port 4(FastEthernet0/4)
+```
+
+Therefore:
+
+```text
+Root Port = F0/4
+```
+
+---
+
+### 💻 SW2 Verification
+
+```plaintext
+SW2#show spanning-tree
+```
+
+Important result:
+
+```text
+Root ID Priority 24577
+Address 00E0.F9E6.44A5
+Cost 8
+Port 25(GigabitEthernet0/1)
+```
+
+Therefore:
+
+```text
+Root Port = G0/1
+```
+
+---
+
+### 💻 SW3 Verification
+
+```plaintext
+SW3#show spanning-tree
+```
+
+Important result:
+
+```text
+Root ID Priority 24577
+Address 00E0.F9E6.44A5
+
+This bridge is the root
+```
+
+Therefore:
+
+```text
+SW3 = Root Bridge
+```
+
+---
+
+### 💻 SW4 Verification
+
+```plaintext
+SW4#show spanning-tree
+```
+
+Important result:
+
+```text
+Root ID Priority 24577
+Address 00E0.F9E6.44A5
+Cost 4
+Port 26(GigabitEthernet0/2)
+```
+
+Therefore:
+
+```text
+Root Port = G0/2
+```
+
+![Day 17 STP Topology](images/day-17.1.png)
+
+
+---
+
+### 🧠 STP Port Roles
+
+#### 👑 Root Port
+
+A **Root Port** is the port on a non-root switch that provides the best path toward the root bridge.
+
+Root ports identified in this lab:
+
+```text
+SW1 F0/4
+SW2 G0/1
+SW4 G0/2
+```
+
+SW3 does not have a root port because it is the root bridge.
+
+---
+
+#### 🎯 Designated Port
+
+A **Designated Port** is the forwarding port selected for a network segment.
+
+In this lab, SW3's ports are designated because SW3 is the root bridge.
+
+---
+
+#### 🚫 Alternate Port
+
+An **Alternate Port** provides a backup path toward the root bridge.
+
+In this lab, alternate ports are placed into the blocking state.
+
+The alternate ports identified were:
+
+```text
+SW1 F0/1
+SW1 F0/2
+SW1 F0/3
+SW2 F0/3
+```
+
+---
+
+### 📊 Expected Results
+
+- SW3 is identified as the **STP root bridge**. ✅
+- SW1 uses F0/4 as its root port. ✅
+- SW2 uses G0/1 as its root port. ✅
+- SW4 uses G0/2 as its root port. ✅
+- SW3's active interfaces are designated ports. ✅
+- SW1 F0/1, F0/2, and F0/3 are alternate/blocking ports. ✅
+- SW2 F0/3 is an alternate/blocking port. ✅
+- STP prevents Layer 2 switching loops. ✅
+- STP information is successfully verified using `show spanning-tree`. ✅
+- Link lights are disabled in Packet Tracer for the lab. ✅
+
+---
+
+## 📚 Skills Practiced
+
+- Spanning Tree Protocol (STP)
+- Root bridge election
+- Bridge ID and bridge priority
+- Root ports
+- Designated ports
+- Alternate ports
+- STP forwarding and blocking states
+- Root path cost
+- `show spanning-tree`
+- Layer 2 loop prevention
+- Cisco Packet Tracer STP analysis
+
+---
+
+## 📸 Topology Screenshot
+
+![Day 17 STP Topology](images/day-17.png)
+
+---

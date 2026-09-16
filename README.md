@@ -4247,3 +4247,621 @@ SW2 F0/3
 ![Day 17 STP Topology](images/day-17.png)
 
 ---
+
+## 📅 Day 18 — Configuring Spanning Tree Protocol (STP)
+
+### 🎯 Lab Objective
+
+In this lab, I configured and analyzed **Spanning Tree Protocol (STP)** for VLAN 1 and VLAN 2 across four Cisco switches.
+
+The lab focused on changing the STP root bridge, modifying STP path cost and port priority, and configuring PortFast with BPDU Guard on host-facing interfaces.
+
+This lab focuses on:
+
+- 🌳 Analyzing the current STP topology
+- 👑 Configuring primary and secondary root bridges
+- 🔌 Identifying STP root, designated, and alternate ports
+- 📊 Modifying STP interface cost
+- ⚙️ Modifying STP port priority
+- ⚡ Configuring PortFast
+- 🛡️ Configuring BPDU Guard
+- 🔍 Verifying STP changes using the CLI
+
+---
+
+### 🧰 Devices Used
+
+- 🔀 **SW1** — Cisco 2960-24TT
+- 🔀 **SW2** — Cisco 2960-24TT
+- 🔀 **SW3** — Cisco 2960-24TT
+- 🔀 **SW4** — Cisco 2960-24TT
+- 💻 **PC1** — Connected to SW3
+- 💻 **PC2** — Connected to SW4
+
+---
+
+### 🌐 Network Overview
+
+The topology consists of four interconnected switches with redundant Layer 2 paths.
+
+The redundant links allow STP to determine which interfaces forward traffic and which interfaces are placed into a blocking state.
+
+The lab uses two VLANs:
+
+| VLAN | Network | Purpose |
+|------|---------|---------|
+| VLAN 1 | 172.16.0.0/25 | PC1 / SW3 side |
+| VLAN 2 | 172.16.0.128/25 | PC2 / SW4 side |
+
+---
+
+### 🔧 Task 1 — Check the Current STP Topology
+
+The first step was to identify the current root bridge and the STP role/state of each port.
+
+The command used on each switch was:
+
+```plaintext
+show spanning-tree
+```
+
+The initial root bridge was **SW2** for both VLAN 1 and VLAN 2.
+
+#### Initial SW1
+
+```text
+VLAN 1:
+F0/1: Alternate / Blocking
+F0/2: Designated / Forwarding
+F0/3: Root / Forwarding
+
+VLAN 2:
+F0/1: Alternate / Blocking
+F0/2: Designated / Forwarding
+F0/3: Root / Forwarding
+```
+
+#### Initial SW2
+
+SW2 was the root bridge for both VLANs.
+
+```text
+VLAN 1:
+F0/1: Designated / Forwarding
+F0/2: Designated / Forwarding
+F0/3: Designated / Forwarding
+
+VLAN 2:
+F0/1: Designated / Forwarding
+F0/2: Designated / Forwarding
+F0/3: Designated / Forwarding
+```
+
+#### Initial SW3
+
+```text
+VLAN 1:
+F0/1: Designated / Forwarding
+F0/2: Root / Forwarding
+F0/3: Designated / Forwarding
+
+VLAN 2:
+F0/1: Designated / Forwarding
+F0/2: Root / Forwarding
+F0/3: Designated / Forwarding
+```
+
+#### Initial SW4
+
+```text
+VLAN 1:
+F0/1: Root / Forwarding
+F0/2: Alternate / Blocking
+
+VLAN 2:
+F0/1: Root / Forwarding
+F0/2: Alternate / Blocking
+```
+
+---
+
+### 👑 Initial Root Bridge
+
+Before configuration changes:
+
+```text
+VLAN 1 → SW2
+VLAN 2 → SW2
+```
+
+SW2 was the root bridge because it had the lowest bridge ID in the initial topology.
+
+#### VLAN001
+![Day 18 STP Configuration Topology](images/day-18.1.png)
+
+#### VLAN002
+![Day 18 STP Configuration Topology](images/day-18.2.png)
+---
+
+### 🔧 Task 2 — Configure SW1 as Primary Root for VLAN 1
+
+SW1 was configured as the **primary root bridge for VLAN 1** and the **secondary root bridge for VLAN 2**.
+
+```plaintext
+enable
+configure terminal
+
+spanning-tree vlan 1 root primary
+spanning-tree vlan 2 root secondary
+
+end
+write
+```
+
+#### Verify SW1
+
+```plaintext
+show spanning-tree
+```
+
+For VLAN 1, the output showed:
+
+```text
+Root ID Priority 24577
+Address 0060.2F90.D14A
+This bridge is the root
+```
+
+Therefore:
+
+```text
+VLAN 1 Root Bridge = SW1
+```
+
+For VLAN 2, SW1 became the secondary root candidate with bridge priority **28674**.
+
+---
+
+### 🔧 Configure SW2 as Primary Root for VLAN 2
+
+SW2 was configured as the **secondary root for VLAN 1** and the **primary root for VLAN 2**.
+
+```plaintext
+enable
+configure terminal
+
+spanning-tree vlan 1 root secondary
+spanning-tree vlan 2 root primary
+
+end
+write
+```
+
+> Note: `spanning-tree vlan 2 primary` returned an incomplete command message, so the complete command `spanning-tree vlan 2 root primary` was entered successfully.
+
+#### Verify SW2
+
+For VLAN 2, the output showed:
+
+```text
+Root ID Priority 24578
+Address 0001.4301.4B81
+This bridge is the root
+```
+
+Therefore:
+
+```text
+VLAN 2 Root Bridge = SW2
+```
+
+For VLAN 1, SW2 became the secondary root candidate with bridge priority **28673**.
+
+---
+
+### 📊 Root Bridge Configuration After Task 2
+
+| VLAN | Primary Root | Secondary Root |
+|------|--------------|----------------|
+| VLAN 1 | SW1 | SW2 |
+| VLAN 2 | SW2 | SW1 |
+
+---
+
+### 📊 STP Port Roles After Root Bridge Configuration
+
+#### SW1
+
+##### VLAN 1
+
+```text
+F0/1: Designated / Forwarding
+F0/2: Designated / Forwarding
+F0/3: Designated / Forwarding
+```
+
+SW1 is the root bridge for VLAN 1.
+
+##### VLAN 2
+
+```text
+F0/1: Designated / Forwarding
+F0/2: Designated / Forwarding
+F0/3: Root / Forwarding
+```
+
+#### SW2
+
+##### VLAN 1
+
+```text
+F0/1: Designated / Forwarding
+F0/2: Designated / Forwarding
+F0/3: Root / Forwarding
+```
+
+##### VLAN 2
+
+```text
+F0/1: Designated / Forwarding
+F0/2: Designated / Forwarding
+F0/3: Designated / Forwarding
+```
+
+SW2 is the root bridge for VLAN 2.
+
+#### SW3
+
+```text
+VLAN 1: F0/2 = Root / Forwarding
+VLAN 2: F0/2 = Root / Forwarding
+```
+
+#### SW4
+
+```text
+VLAN 1: F0/1 = Root / Forwarding, F0/2 = Alternate / Blocking
+VLAN 2: F0/1 = Root / Forwarding, F0/2 = Alternate / Blocking
+```
+
+---
+#### SW1/SW2 CONFIGURATIONS
+![Day 18 STP Configuration Topology](images/day-18.3.png)
+
+### 🔧 Task 3 — Increase SW4 VLAN 1 Port Cost
+
+The VLAN 1 cost of SW4's F0/2 interface was increased from **19 to 100**.
+
+```plaintext
+enable
+configure terminal
+
+interface f0/2
+spanning-tree vlan 1 cost 100
+
+end
+```
+
+#### Verify SW4
+
+```plaintext
+show spanning-tree
+```
+
+The VLAN 1 output showed:
+
+```text
+Cost 38
+Port 1(FastEthernet0/1)
+
+Fa0/1 Root LSN 19 128.1 P2p
+Fa0/2 Altn BLK 100 128.2 P2p
+```
+
+### ✅ Result
+
+SW4 **did not select a different root port** in the captured output.
+
+The root port remained:
+
+```text
+F0/1
+```
+
+Increasing the cost of F0/2 makes that path less preferable than the lower-cost path through F0/1.
+
+---
+
+### 🔧 Task 4 — Increase VLAN 1 Port Priority
+
+The lab task calls for increasing the VLAN 1 port priority of SW1's F0/1. In the captured CLI session, the command was actually applied to **SW3 F0/1**:
+
+```plaintext
+enable
+configure terminal
+
+interface f0/1
+spanning-tree vlan 1 port-priority 240
+```
+
+The new priority was confirmed as:
+
+```text
+Prio.Nbr = 240.1
+```
+
+#### Verify SW3
+
+```plaintext
+show spanning-tree
+```
+
+The captured output showed:
+
+```text
+Fa0/2 Altn BLK 19 128.2 P2p
+Fa0/1 Root LSN 19 240.1 P2p
+Fa0/3 Desg FWD 19 128.3 P2p
+```
+
+
+### 📌 Result from Captured Output
+
+SW3's F0/1 remained the root port in the captured output, but its state was **LSN (Listening)**, indicating that STP was still transitioning/converging when the command was captured.
+
+The captured state was:
+
+```text
+F0/1: Root / Listening
+F0/2: Alternate / Blocking
+F0/3: Designated / Forwarding
+```
+
+For a final post-convergence result, run:
+
+```plaintext
+show spanning-tree vlan 1
+```
+
+after allowing STP to settle.
+
+---
+
+### 🔧 Task 5 — Configure PortFast and BPDU Guard on SW3
+
+PortFast and BPDU Guard were configured on SW3's F0/3 interface.
+
+```plaintext
+enable
+configure terminal
+
+interface f0/3
+spanning-tree bpduguard enable
+spanning-tree portfast
+
+end
+write
+```
+
+Cisco Packet Tracer displayed a warning that PortFast should only be used on ports connected to a single host. F0/3 is a host-facing interface in this lab.
+
+---
+
+### 🔧 Configure PortFast and BPDU Guard on SW4
+
+The same configuration was applied to SW4's F0/3 interface.
+
+```plaintext
+enable
+configure terminal
+
+interface f0/3
+spanning-tree bpduguard enable
+spanning-tree portfast
+
+end
+write
+```
+
+---
+
+### 🔍 Verify PortFast and BPDU Guard
+
+Use:
+
+```plaintext
+show spanning-tree interface f0/3 detail
+```
+
+This can be used to verify PortFast and BPDU Guard configuration on the interface.
+
+You can also use:
+
+```plaintext
+show spanning-tree summary
+```
+
+for a summary of STP features.
+
+---
+#### SW3/SW4 CONFIGURATIONS
+
+![Day 18 STP Configuration Topology](images/day-18.4.png)
+
+### 🧠 STP Concepts Practiced
+
+#### 👑 Root Bridge
+
+The root bridge is the switch with the lowest bridge ID for a particular VLAN.
+
+In this lab:
+
+```text
+VLAN 1 → SW1
+VLAN 2 → SW2
+```
+
+---
+
+#### 🔌 Root Port
+
+A root port is the port on a non-root switch that provides the best path toward the root bridge.
+
+Examples from this lab include:
+
+```text
+SW3 F0/2
+SW4 F0/1
+```
+
+---
+
+#### 🎯 Designated Port
+
+A designated port is the forwarding port selected for a Layer 2 segment. Root bridge interfaces normally operate as designated ports.
+
+---
+
+#### 🚫 Alternate Port
+
+An alternate port provides a backup path toward the root bridge and is normally placed into a blocking state.
+
+Examples include:
+
+```text
+SW4 F0/2
+```
+
+---
+
+#### 📊 STP Cost
+
+STP cost is used to determine the preferred path toward the root bridge.
+
+In this lab, SW4 F0/2 was changed to:
+
+```text
+100
+```
+
+This made the path through F0/2 less preferable.
+
+---
+
+#### ⚙️ Port Priority
+
+Port priority is used as part of STP's tie-breaking process when multiple paths have the same path cost.
+
+The default port priority is commonly:
+
+```text
+128
+```
+
+In this lab, SW3 F0/1 was changed to:
+
+```text
+240
+```
+
+---
+
+#### ⚡ PortFast
+
+PortFast allows a host-facing access port to transition to the forwarding state more quickly.
+
+It should normally be used on ports connected to end devices rather than other switches.
+
+---
+
+#### 🛡️ BPDU Guard
+
+BPDU Guard protects PortFast-enabled access ports by putting the interface into an error-disabled state if unexpected BPDUs are received.
+
+This helps prevent an unauthorized switch from affecting the STP topology.
+
+---
+
+### 📊 Final Configuration Summary
+
+| Switch | VLAN / Interface | Configuration |
+|--------|------------------|---------------|
+| SW1 | VLAN 1 | Primary Root |
+| SW1 | VLAN 2 | Secondary Root |
+| SW2 | VLAN 1 | Secondary Root |
+| SW2 | VLAN 2 | Primary Root |
+| SW4 F0/2 | VLAN 1 | Cost 100 |
+| SW3 F0/1 | VLAN 1 | Port Priority 240 |
+| SW3 F0/3 | — | PortFast + BPDU Guard |
+| SW4 F0/3 | — | PortFast + BPDU Guard |
+
+---
+
+### 🔍 Useful Verification Commands
+
+```plaintext
+show spanning-tree
+```
+
+```plaintext
+show spanning-tree vlan 1
+```
+
+```plaintext
+show spanning-tree vlan 2
+```
+
+```plaintext
+show spanning-tree interface f0/3 detail
+```
+
+```plaintext
+show spanning-tree summary
+```
+
+---
+
+### 📊 Expected Results
+
+- SW1 becomes the primary root bridge for VLAN 1. ✅
+- SW1 is configured as the secondary root for VLAN 2. ✅
+- SW2 becomes the primary root bridge for VLAN 2. ✅
+- SW2 is configured as the secondary root for VLAN 1. ✅
+- SW4 F0/2 has its VLAN 1 cost increased to 100. ✅
+- SW4 continues using F0/1 as its root port in the captured verification. ✅
+- SW3 F0/1 has its VLAN 1 port priority changed to 240. ✅
+- The captured output shows SW3 F0/1 remaining the root port while STP is in the listening state. ✅
+- PortFast is configured on SW3 F0/3. ✅
+- BPDU Guard is configured on SW3 F0/3. ✅
+- PortFast is configured on SW4 F0/3. ✅
+- BPDU Guard is configured on SW4 F0/3. ✅
+- STP configuration is verified using `show spanning-tree`. ✅
+- Configurations are saved using `write`. ✅
+
+---
+
+## 📚 Skills Practiced
+
+- Spanning Tree Protocol (STP)
+- Root bridge election
+- Primary and secondary root configuration
+- VLAN-specific STP
+- Root ports
+- Designated ports
+- Alternate ports
+- STP path cost
+- STP port priority
+- PortFast
+- BPDU Guard
+- STP convergence
+- `show spanning-tree`
+- Cisco IOS configuration
+- Cisco Packet Tracer troubleshooting and verification
+
+---
+
+## 📸 Topology Screenshot
+
+![Day 18 STP Configuration Topology](images/day-18.png)
+
+---
